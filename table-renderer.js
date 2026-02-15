@@ -63,6 +63,7 @@ function initTableRenderer() {
   const downloadBtn = document.getElementById("download-json-btn");
   if (downloadBtn) {
     downloadBtn.addEventListener("click", () => {
+      // Scrape data directly from the table inputs
       const currentData = scrapeAllData();
       const dataStr = JSON.stringify(currentData, null, 2);
       const blob = new Blob([dataStr], { type: "application/json" });

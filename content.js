@@ -8,7 +8,8 @@ async function loadContent() {
   // 1. Fetch from JSON file (Base of Truth)
   let fileContent = {};
   try {
-    const response = await fetch("content.json");
+    // Add timestamp to prevent browser caching of the JSON file
+    const response = await fetch(`content.json?t=${new Date().getTime()}`);
     if (response.ok) {
       fileContent = await response.json();
     } else {
