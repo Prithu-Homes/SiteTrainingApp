@@ -42,21 +42,24 @@ let appContent = defaultAppContent;
 function loadContent() {
   const stored = localStorage.getItem("siteContent");
   if (stored) {
-    appContent = JSON.parse(stored);
+    try {
+      appContent = JSON.parse(stored);
+    } catch (e) {
+      console.error("Error parsing stored content:", e);
+      // Fallback to defaultAppContent is already set
+    }
   }
 }
 
-// Initial load for external scripts
-loadContent();
-
-document.addEventListener("DOMContentLoaded", () => {
-  // Re-load content to ensure we have the latest version on page load
-  loadContent();
-
+/**
+ * Updates the DOM elements with the current appContent data.
+ */
+function updateDOM() {
   // Guard clause: Only run if we are on the main page (checking for hero section)
   if (!document.querySelector(".hero-content")) return;
 
   // 1. Populate Hero Section
+  // We use optional chaining (?.) just in case a key is missing in the saved data
   document.querySelector(".hero-content h1").textContent =
     appContent.hero.title;
   document.querySelector(".hero-content p").textContent =
@@ -74,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 3. Generate Feature Cards Dynamically
   const featureGrid = document.querySelector(".feature-grid");
-  if (featureGrid) {
+  if (featureGrid && appContent.features.cards) {
     featureGrid.innerHTML = appContent.features.cards
       .map(
         (card) => `
@@ -95,4 +98,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 4. Populate Footer
   document.querySelector("footer p").innerHTML = appContent.footer;
+}
+
+// Initial load for external scripts (like table-renderer.js)
+loadContent();
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Re-load content to ensure we have the latest version on page load
+  loadContent();
+  updateDOM();
+});
+
+// Handle BFCache (Back/Forward Cache) for browser navigation
+window.addEventListener("pageshow", (event) => {
+  // If the page is being served from the cache (e.g. back button)
+  if (event.persisted) {
+    loadContent();
+    updateDOM();
+  }
 });
