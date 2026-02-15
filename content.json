@@ -40,9 +40,9 @@
   },
   "features": {
     "heading": "Train Anywhere",
-    "subheading": "Access thousands of workouts led by world-class trainers.",
+    "subheading": "Access structured site training modules led by certified construction experts.",
     "cards": [
-      {
+      { 
         "image": "assets/images/construction.jpg",
         "alt": "Construction",
         "badge": "Construction",
@@ -50,15 +50,22 @@
         "description": "Sharpen Your Knowledge around best construction practices and techniques."
       },
       {
-        "image": "assets/images/studio.jpg",
-        "alt": "Studio Classes",
-        "badge": "Studio",
-        "title": "Studio Classes",
-        "description": "High-energy studio sessions with motivating instructors."
+        "image": "assets/images/plumbing.jpg",
+        "alt": "Plumbing",
+        "badge": "Plumbing",
+        "title": "Plumbing",
+        "description": "Learn best practices for plumbing installation and maintenance."
+      },
+      {
+        "image": "assets/images/paint.jpg",
+        "alt": "Paint",
+        "badge": "Paint",
+        "title": "Paint",
+        "description": "Master the art of painting and finishing techniques."
       },
       {
         "image": "assets/images/yoga.jpg",
-        "alt": "Yoga and Mindfulness",
+        "alt": "Yoga & Mindfulness",
         "badge": "Wellness",
         "title": "Yoga & Mindfulness",
         "description": "Strengthen your body and mind with guided sessions."
