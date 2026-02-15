@@ -264,6 +264,18 @@ footer {
     text-align: right;
 }
 
+footer a {
+    color: #7ec8ff;
+}
+
+footer a:visited {
+    color: #7ec8ff;
+}
+
+footer a:hover {
+    color: #a8dcff;
+}
+
 /* Mobile */
 @media (max-width: 768px) {
     .nav-links, .nav-auth { display: none; }
