@@ -47,28 +47,52 @@
         "alt": "Construction",
         "badge": "Construction",
         "title": "Construction",
-        "description": "Sharpen Your Knowledge around best construction practices and techniques."
+        "description": "Sharpen Your Knowledge around best construction practices and techniques.",
+        "videos": [
+          {
+            "sequence": 1,
+            "name": "Site Safety Basics",
+            "description": "PPE, hazard checks, and safe movement on site.",
+            "url": "assets/videos/construction-safety.mp4"
+          },
+          {
+            "sequence": 2,
+            "name": "Concrete Preparation",
+            "description": "Step-by-step prep before pour for better durability.",
+            "url": "assets/videos/construction-concrete-prep.mp4"
+          }
+        ]
       },
       {
         "image": "assets/images/plumbing.jpg",
         "alt": "Plumbing",
         "badge": "Plumbing",
         "title": "Plumbing",
-        "description": "Learn best practices for plumbing installation and maintenance."
+        "description": "Learn best practices for plumbing installation and maintenance.",
+        "videos": [
+          {
+            "sequence": 1,
+            "name": "Pipe Jointing Fundamentals",
+            "description": "Common joint types and leak prevention techniques.",
+            "url": "assets/videos/plumbing-pipe-jointing.mp4"
+          }
+        ]
       },
       {
         "image": "assets/images/paint.jpg",
         "alt": "Paint",
         "badge": "Paint",
         "title": "Paint",
-        "description": "Master the art of painting and finishing techniques."
+        "description": "Master the art of painting and finishing techniques.",
+        "videos": []
       },
       {
         "image": "assets/images/yoga.jpg",
         "alt": "Yoga & Mindfulness",
         "badge": "Wellness",
         "title": "Yoga & Mindfulness",
-        "description": "Strengthen your body and mind with guided sessions."
+        "description": "Strengthen your body and mind with guided sessions.",
+        "videos": []
       }
     ]
   },
