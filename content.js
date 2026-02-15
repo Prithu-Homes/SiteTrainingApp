@@ -4,6 +4,17 @@ window.appContent = {};
 // Custom event to notify other scripts when data is loaded
 const contentReadyEvent = new Event("contentReady");
 
+function buildTrainingSectionId(card, index) {
+  const explicitId = (card?.sectionId || "").trim();
+  if (explicitId) return explicitId;
+
+  const baseTitle = (card?.title || `section-${index + 1}`).toLowerCase();
+  const slug = baseTitle
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `${slug || "section"}-${index + 1}`;
+}
+
 async function loadContent() {
   // 1. Fetch from JSON file (Base of Truth)
   let fileContent = {};
@@ -95,7 +106,8 @@ function updateDOM() {
   if (featureGrid && window.appContent.features?.cards) {
     featureGrid.innerHTML = window.appContent.features.cards
       .map(
-        (card) => `
+        (card, index) => `
+        <a class="card-link" href="trainingVideos.html#${buildTrainingSectionId(card, index)}">
         <div class="card">
             <div class="card-image">
                 <img src="${card.image}" alt="${card.alt || card.title || ""}" onerror="this.style.display='none'; this.parentElement.style.backgroundColor='#ccc'">
@@ -106,6 +118,7 @@ function updateDOM() {
                 <p>${card.description}</p>
             </div>
         </div>
+        </a>
     `,
       )
       .join("");

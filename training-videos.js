@@ -1,3 +1,14 @@
+function buildTrainingSectionId(card, index) {
+  const explicitId = (card?.sectionId || "").trim();
+  if (explicitId) return explicitId;
+
+  const baseTitle = (card?.title || `section-${index + 1}`).toLowerCase();
+  const slug = baseTitle
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `${slug || "section"}-${index + 1}`;
+}
+
 function renderTrainingVideoSections() {
   const container = document.getElementById("videos-sections");
   if (!container) return;
@@ -12,8 +23,9 @@ function renderTrainingVideoSections() {
   container.innerHTML = cards
     .map((card, index) => {
       const title = (card.title || `Section ${index + 1}`).trim();
+      const sectionId = buildTrainingSectionId(card, index);
       return `
-        <section class="video-section-card" id="video-section-${index + 1}">
+        <section class="video-section-card" id="${sectionId}">
           <h2>${title}</h2>
           <p>Video content for "${title}" can be added here.</p>
         </section>

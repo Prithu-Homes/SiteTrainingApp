@@ -204,6 +204,18 @@ body {
     gap: 2rem;
 }
 
+.card-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+.card-link:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+    border-radius: 10px;
+}
+
 .card {
     background: white;
     border-radius: 8px;
