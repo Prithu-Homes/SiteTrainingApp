@@ -42,11 +42,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 4. Mobile Menu Toggle (Simple implementation)
   const hamburger = document.querySelector(".hamburger");
+  const navLinks = document.querySelector(".nav-links");
   // Note: In a real app, you'd toggle a class on a mobile menu container
-  if (hamburger) {
+  if (hamburger && navbar) {
     hamburger.addEventListener("click", () => {
-      console.log("Toggle mobile menu");
-      // Implementation left for expansion
+      navbar.classList.toggle("mobile-open");
     });
   }
+
+  if (navLinks && navbar) {
+    navLinks.addEventListener("click", (e) => {
+      const link = e.target.closest("a");
+      if (!link) return;
+      navbar.classList.remove("mobile-open");
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    if (!navbar || !navbar.classList.contains("mobile-open")) return;
+    if (e.target.closest(".navbar")) return;
+    navbar.classList.remove("mobile-open");
+  });
 });
