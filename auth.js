@@ -23,9 +23,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const userName = document.getElementById("user-name");
 
     if (account) {
+      const greetingPrefix = window.appContent?.auth?.userGreetingPrefix || "Hi";
       guestArea.classList.add("hidden");
       userArea.classList.remove("hidden");
-      userName.textContent = `Hi, ${account.name}`;
+      userName.textContent = `${greetingPrefix}, ${account.name}`;
     } else {
       guestArea.classList.remove("hidden");
       userArea.classList.add("hidden");

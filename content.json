@@ -1,4 +1,28 @@
 {
+  "site": {
+    "title": "Prithu Homes - Training App"
+  },
+  "branding": {
+    "homeUrl": "https://www.prithu.in",
+    "companyLogoSrc": "assets/images/PrithuHomesLogo.avif",
+    "companyLogoAlt": "Prithu Homes",
+    "appLogoSrc": "assets/images/trainingAppLogo.png",
+    "appLogoAlt": "Training App"
+  },
+  "navigation": {
+    "links": [
+      { "label": "Workouts", "href": "#workouts" },
+      { "label": "Equipment", "href": "#equipment" },
+      { "label": "Coaches", "href": "#coaches" },
+      { "label": "Data View", "href": "data-view.html" }
+    ]
+  },
+  "auth": {
+    "loginText": "Log In",
+    "signupText": "Sign Up",
+    "logoutText": "Log Out",
+    "userGreetingPrefix": "Hi"
+  },
   "hero": {
     "title": "Hi, How are You today",
     "subtitle": "I am Your Training Partner, from the comfort of your home, work, or anywhere you choose.",
@@ -13,18 +37,21 @@
     "cards": [
       {
         "image": "assets/images/global.jpg",
+        "alt": "Global Workouts",
         "badge": "Global",
         "title": "Global Workouts",
         "description": "Run in London, cycle in the Alps, or row in Antarctica."
       },
       {
         "image": "assets/images/studio.jpg",
+        "alt": "Studio Classes",
         "badge": "Studio",
         "title": "Studio Classes",
         "description": "High-energy studio sessions with motivating instructors."
       },
       {
         "image": "assets/images/yoga.jpg",
+        "alt": "Yoga and Mindfulness",
         "badge": "Wellness",
         "title": "Yoga & Mindfulness",
         "description": "Strengthen your body and mind with guided sessions."
@@ -41,5 +68,5 @@
 
     ]
   },
-  "footer": "&copy; 2023 Prithu Homes. All rights reserved."
+  "footer": "&copy; {year} Prithu Homes. All rights reserved."
 }

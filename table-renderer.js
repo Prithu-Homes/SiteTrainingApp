@@ -17,26 +17,46 @@ function initTableRenderer() {
   // Clear placeholder content (like comments/whitespace)
   container.innerHTML = "";
 
-  // 1. Render Hero Section Data
+  // 1. Render Site Section
+  createTableFromObject("Site", window.appContent.site || {}, "site-section");
+
+  // 2. Render Branding Section
+  createTableFromObject(
+    "Branding",
+    window.appContent.branding || {},
+    "branding-section",
+  );
+
+  // 3. Render Navigation Links
+  createTableFromArray(
+    "Navigation Links",
+    window.appContent.navigation?.links || [],
+    "navigation-links-section",
+  );
+
+  // 4. Render Auth Labels
+  createTableFromObject("Auth", window.appContent.auth || {}, "auth-section");
+
+  // 5. Render Hero Section Data
   createTableFromObject(
     "Hero Section",
     window.appContent.hero || {},
     "hero-section",
   );
 
-  // 2. Render Features Section Data (excluding cards array)
+  // 6. Render Features Section Data (excluding cards array)
   const featuresData = { ...(window.appContent.features || {}) };
   delete featuresData.cards; // Remove array to handle separately
   createTableFromObject("Features Section", featuresData, "features-section");
 
-  // 3. Render Feature Cards (Array)
+  // 7. Render Feature Cards (Array)
   createTableFromArray(
     "Feature Cards",
     window.appContent.features?.cards || [],
     "cards-section",
   );
 
-  // 4. Render Image Sequence Settings (New)
+  // 8. Render Image Sequence Settings
   const seqData = { ...(window.appContent.imageSequence || {}) };
   delete seqData.images; // Separate array
   createTableFromObject(
@@ -45,21 +65,21 @@ function initTableRenderer() {
     "sequence-settings",
   );
 
-  // 5. Render Image Sequence Images (New)
+  // 9. Render Image Sequence Images
   createTableFromArray(
     "Image Sequence Images",
     window.appContent.imageSequence?.images || [],
     "sequence-images",
   );
 
-  // 6. Render Footer
+  // 10. Render Footer
   createTableFromObject(
     "Footer",
     { text: window.appContent.footer || "" },
     "footer-section",
   );
 
-  // 7. Handle JSON Download
+  // 11. Handle JSON Download
   const downloadBtn = document.getElementById("download-json-btn");
   if (downloadBtn) {
     downloadBtn.addEventListener("click", () => {
@@ -83,6 +103,10 @@ function initTableRenderer() {
 
   function scrapeAllData() {
     const content = {
+      site: scrapeObject("site-section"),
+      branding: scrapeObject("branding-section"),
+      navigation: { links: scrapeArray("navigation-links-section") },
+      auth: scrapeObject("auth-section"),
       hero: scrapeObject("hero-section"),
       features: scrapeObject("features-section"),
       imageSequence: scrapeObject("sequence-settings"),
@@ -95,6 +119,7 @@ function initTableRenderer() {
 
   function scrapeObject(elementId) {
     const container = document.getElementById(elementId);
+    if (!container) return {};
     const rows = container.querySelectorAll("tbody tr");
     const obj = {};
     rows.forEach((row) => {
@@ -107,6 +132,7 @@ function initTableRenderer() {
 
   function scrapeArray(elementId) {
     const container = document.getElementById(elementId);
+    if (!container) return [];
     const headers = Array.from(container.querySelectorAll("thead th")).map(
       (th) => th.dataset.key,
     );

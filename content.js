@@ -29,6 +29,47 @@ async function loadContent() {
  * Updates the DOM elements with the current appContent data.
  */
 function updateDOM() {
+  // 0. Populate global page content
+  document.title = window.appContent.site?.title || document.title;
+
+  const brandLink = document.getElementById("brand-link");
+  if (brandLink) {
+    brandLink.href = window.appContent.branding?.homeUrl || "#";
+  }
+
+  const brandLogo = document.getElementById("brand-logo");
+  if (brandLogo) {
+    brandLogo.src = window.appContent.branding?.companyLogoSrc || "";
+    brandLogo.alt = window.appContent.branding?.companyLogoAlt || "";
+  }
+
+  const appLogo = document.getElementById("app-logo");
+  if (appLogo) {
+    appLogo.src = window.appContent.branding?.appLogoSrc || "";
+    appLogo.alt = window.appContent.branding?.appLogoAlt || "";
+  }
+
+  const navLinksContainer = document.querySelector(".nav-links");
+  if (navLinksContainer) {
+    const navLinks = window.appContent.navigation?.links || [];
+    navLinksContainer.innerHTML = navLinks
+      .map((link) => `<a href="${link.href}">${link.label}</a>`)
+      .join("");
+  }
+
+  const loginBtn = document.getElementById("login-btn");
+  if (loginBtn) {
+    loginBtn.textContent = window.appContent.auth?.loginText || "";
+  }
+  const signupBtn = document.getElementById("signup-btn");
+  if (signupBtn) {
+    signupBtn.textContent = window.appContent.auth?.signupText || "";
+  }
+  const logoutBtn = document.getElementById("logout-btn");
+  if (logoutBtn) {
+    logoutBtn.textContent = window.appContent.auth?.logoutText || "";
+  }
+
   // Guard clause: Only run if we are on the main page (checking for hero section)
   if (!document.querySelector(".hero-content")) return;
 
@@ -57,7 +98,7 @@ function updateDOM() {
         (card) => `
         <div class="card">
             <div class="card-image">
-                <img src="${card.image}" alt="${card.title}" onerror="this.style.display='none'; this.parentElement.style.backgroundColor='#ccc'">
+                <img src="${card.image}" alt="${card.alt || card.title || ""}" onerror="this.style.display='none'; this.parentElement.style.backgroundColor='#ccc'">
                 <div class="card-badge">${card.badge}</div>
             </div>
             <div class="card-body">
@@ -71,7 +112,11 @@ function updateDOM() {
   }
 
   // 4. Populate Footer
-  document.querySelector("footer p").innerHTML = window.appContent.footer || "";
+  const footerYear = new Date().getFullYear();
+  const footerTemplate = window.appContent.footer || "";
+  document.querySelector("footer p").innerHTML = footerTemplate
+    .replaceAll("{{year}}", footerYear)
+    .replaceAll("{year}", footerYear);
 
   // 5. Render Image Sequence
   renderImageSequence();

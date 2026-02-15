@@ -49,9 +49,3 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Footer for Current year
-document.addEventListener("DOMContentLoaded", function () {
-  const year = new Date().getFullYear();
-  document.getElementById("footer-text").innerHTML =
-    `&copy; ${year} Fitness Pro. All rights reserved.`;
-});
