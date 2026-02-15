@@ -37,26 +37,29 @@ function initTableRenderer() {
   // 4. Render Auth Labels
   createTableFromObject("Auth", window.appContent.auth || {}, "auth-section");
 
-  // 5. Render Hero Section Data
+  // 5. Render MSAL Config
+  createTableFromObject("MSAL", window.appContent.msal || {}, "msal-section");
+
+  // 6. Render Hero Section Data
   createTableFromObject(
     "Hero Section",
     window.appContent.hero || {},
     "hero-section",
   );
 
-  // 6. Render Features Section Data (excluding cards array)
+  // 7. Render Features Section Data (excluding cards array)
   const featuresData = { ...(window.appContent.features || {}) };
   delete featuresData.cards; // Remove array to handle separately
   createTableFromObject("Features Section", featuresData, "features-section");
 
-  // 7. Render Feature Cards (Array)
+  // 8. Render Feature Cards (Array)
   createTableFromArray(
     "Feature Cards",
     window.appContent.features?.cards || [],
     "cards-section",
   );
 
-  // 8. Render Image Sequence Settings
+  // 9. Render Image Sequence Settings
   const seqData = { ...(window.appContent.imageSequence || {}) };
   delete seqData.images; // Separate array
   createTableFromObject(
@@ -65,21 +68,21 @@ function initTableRenderer() {
     "sequence-settings",
   );
 
-  // 9. Render Image Sequence Images
+  // 10. Render Image Sequence Images
   createTableFromArray(
     "Image Sequence Images",
     window.appContent.imageSequence?.images || [],
     "sequence-images",
   );
 
-  // 10. Render Footer
+  // 11. Render Footer
   createTableFromObject(
     "Footer",
     { text: window.appContent.footer || "" },
     "footer-section",
   );
 
-  // 11. Handle JSON Download
+  // 12. Handle JSON Download
   const downloadBtn = document.getElementById("download-json-btn");
   if (downloadBtn) {
     downloadBtn.addEventListener("click", () => {
@@ -107,6 +110,7 @@ function initTableRenderer() {
       branding: scrapeObject("branding-section"),
       navigation: { links: scrapeArray("navigation-links-section") },
       auth: scrapeObject("auth-section"),
+      msal: scrapeObject("msal-section"),
       hero: scrapeObject("hero-section"),
       features: scrapeObject("features-section"),
       imageSequence: scrapeObject("sequence-settings"),

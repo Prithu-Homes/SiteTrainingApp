@@ -1,19 +1,38 @@
-// MSAL Configuration
-const msalConfig = {
-  auth: {
-    clientId: "d9051dac-005c-4352-b9e3-58aaf47061c3", // Replace with your Azure AD Client ID
-    authority:
-      "https://login.microsoftonline.com/aa947143-f10f-46fc-a1e0-b2e5cba0bbaa",
-    redirectUri: "https://prithu-homes.github.io/SiteTrainingApp/",
-  },
-  cache: {
-    cacheLocation: "localStorage",
-    storeAuthStateInCookie: false,
-  },
-};
+let authInitialized = false;
 
-document.addEventListener("DOMContentLoaded", () => {
-  // MSAL Authentication Logic
+function buildMsalConfig() {
+  const config = window.appContent?.msal;
+  if (!config?.clientId || !config?.authority || !config?.redirectUri) {
+    return null;
+  }
+
+  return {
+    auth: {
+      clientId: config.clientId,
+      authority: config.authority,
+      redirectUri: config.redirectUri,
+    },
+    cache: {
+      cacheLocation: config.cacheLocation || "localStorage",
+      storeAuthStateInCookie:
+        config.storeAuthStateInCookie === true ||
+        config.storeAuthStateInCookie === "true",
+    },
+  };
+}
+
+function initAuthFromContent() {
+  if (authInitialized) return true;
+
+  const msalConfig = buildMsalConfig();
+  if (!msalConfig) return false;
+
+  if (!window.msal || !window.msal.PublicClientApplication) {
+    console.error("MSAL library is not available.");
+    return false;
+  }
+
+  authInitialized = true;
   console.log("MSAL Redirect URI:", msalConfig.auth.redirectUri);
   const myMSALObj = new msal.PublicClientApplication(msalConfig);
 
@@ -76,4 +95,16 @@ document.addEventListener("DOMContentLoaded", () => {
       myMSALObj.logoutRedirect({ account: account });
     });
   }
+  return true;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const tryInitAuth = () => {
+    if (initAuthFromContent()) {
+      window.removeEventListener("contentReady", tryInitAuth);
+    }
+  };
+
+  window.addEventListener("contentReady", tryInitAuth);
+  tryInitAuth();
 });
