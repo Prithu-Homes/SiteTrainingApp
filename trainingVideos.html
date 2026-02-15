@@ -37,7 +37,7 @@
     }
 
     .video-section-card h2 {
-      margin-bottom: 0.5rem;
+      margin-bottom: 0;
       font-size: 1.4rem;
     }
 
@@ -46,26 +46,65 @@
       margin: 0;
     }
 
+    .video-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .video-sequence-bar {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .video-sequence-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid #d8d8d8;
+      background: #fff;
+      color: #222;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      line-height: 1.2;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .video-sequence-link:hover {
+      background: #f4f8ff;
+      border-color: #9fc2f5;
+    }
+
     .training-video-list {
       margin-top: 1rem;
       display: grid;
-      gap: 1rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.25rem;
     }
 
     .training-video-item {
       border: 1px solid #e6e6e6;
-      border-radius: 8px;
-      padding: 1rem;
-      background: #fafafa;
+      border-radius: 10px;
+      padding: 0.9rem;
+      background: #fff;
       display: grid;
       gap: 0.75rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     }
 
     .training-video-player {
-      width: min(100%, 340px);
+      width: 100%;
       aspect-ratio: 16 / 9;
       border-radius: 6px;
-      margin: 0 auto;
+      margin: 0;
       background: #000;
       display: block;
       cursor: zoom-in;
@@ -85,6 +124,22 @@
     .empty-videos {
       color: var(--text-muted);
       font-style: italic;
+    }
+
+    @media (max-width: 1100px) {
+      .training-video-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .training-video-list {
+        grid-template-columns: 1fr;
+      }
+
+      .video-sequence-bar {
+        justify-content: flex-start;
+      }
     }
 
     .video-modal {

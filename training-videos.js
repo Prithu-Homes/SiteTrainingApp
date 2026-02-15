@@ -187,6 +187,15 @@ async function renderTrainingVideoSections() {
           toSequenceNumber(a.sequence, Number.MAX_SAFE_INTEGER) -
           toSequenceNumber(b.sequence, Number.MAX_SAFE_INTEGER),
       );
+      const sequenceBarHtml = sortedVideos.length > 0
+        ? sortedVideos
+          .map((video, videoIndex) => {
+            const sequence = toSequenceNumber(video.sequence, videoIndex + 1);
+            const videoCardId = `${sectionId}-video-${sequence}`;
+            return `<a class="video-sequence-link" href="#${escapeHtml(videoCardId)}">${sequence}</a>`;
+          })
+          .join("")
+        : "";
 
       const videosHtml =
         sortedVideos.length > 0
@@ -194,6 +203,7 @@ async function renderTrainingVideoSections() {
             await Promise.all(
               sortedVideos.map(async (video, videoIndex) => {
                 const sequence = toSequenceNumber(video.sequence, videoIndex + 1);
+                const videoCardId = `${sectionId}-video-${sequence}`;
                 const name = escapeHtml(video.name || `Video ${videoIndex + 1}`);
                 const description = escapeHtml(video.description || "");
                 const resolved = await resolveVideoUrl(video.url || "", account);
@@ -209,7 +219,7 @@ async function renderTrainingVideoSections() {
                   : `<p class="empty-videos">${error || "Video unavailable."}</p>`;
 
                 return `
-                  <article class="training-video-item">
+                  <article class="training-video-item" id="${escapeHtml(videoCardId)}">
                     ${mediaBlock}
                     <div class="training-video-meta">
                       <p><strong>Sequence:</strong> ${sequence}</p>
@@ -225,7 +235,10 @@ async function renderTrainingVideoSections() {
 
       return `
         <section class="video-section-card" id="${sectionId}">
-          <h2>${escapeHtml(title)}</h2>
+          <div class="video-section-header">
+            <h2>${escapeHtml(title)}</h2>
+            <div class="video-sequence-bar">${sequenceBarHtml}</div>
+          </div>
           <div class="training-video-list">
             ${videosHtml}
           </div>
