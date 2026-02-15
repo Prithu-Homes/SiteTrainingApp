@@ -11,7 +11,7 @@
   },
   "navigation": {
     "links": [
-      { "label": "Training", "href": "#training" },
+      { "label": "Trainings", "href": "#trainings" },
       { "label": "Assement", "href": "#assement" },
       { "label": "Coaches", "href": "#coaches" },
       { "label": "Data View", "href": "data-view.html" }
