@@ -23,19 +23,21 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // 3. Smooth Scrolling
-  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-    anchor.addEventListener("click", function (e) {
-      e.preventDefault();
-      const targetId = this.getAttribute("href");
-      if (targetId === "#") return;
+  // Use event delegation to handle dynamically added links from content.js
+  document.addEventListener("click", (e) => {
+    const anchor = e.target.closest('a[href^="#"]');
+    if (!anchor) return;
 
-      const targetElement = document.querySelector(targetId);
-      if (targetElement) {
-        targetElement.scrollIntoView({
-          behavior: "smooth",
-        });
-      }
-    });
+    e.preventDefault();
+    const targetId = anchor.getAttribute("href");
+    if (targetId === "#") return;
+
+    const targetElement = document.querySelector(targetId);
+    if (targetElement) {
+      targetElement.scrollIntoView({
+        behavior: "smooth",
+      });
+    }
   });
 
   // 4. Mobile Menu Toggle (Simple implementation)
@@ -48,4 +50,3 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-
