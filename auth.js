@@ -12,11 +12,13 @@ const msalConfig = {
   },
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-  // MSAL Authentication Logic
-  console.log("MSAL Redirect URI:", msalConfig.auth.redirectUri);
-  const myMSALObj = new msal.PublicClientApplication(msalConfig);
+// Initialize MSAL globally to ensure it handles popup redirects immediately
+const myMSALObj = new msal.PublicClientApplication(msalConfig);
 
+// Start handling the redirect immediately to catch the hash before DOM loads
+const redirectPromise = myMSALObj.handleRedirectPromise();
+
+document.addEventListener("DOMContentLoaded", () => {
   function updateUI(account) {
     const guestArea = document.getElementById("guest-area");
     const userArea = document.getElementById("user-area");
@@ -50,8 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Handle Redirect Promise (for page reloads after login)
-  myMSALObj
-    .handleRedirectPromise()
+  redirectPromise
     .then((response) => {
       if (response) {
         updateUI(response.account);
