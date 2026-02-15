@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Training Videos</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .videos-page {
+      padding: 6rem 2rem 3rem;
+      background: var(--gray);
+      min-height: 100vh;
+    }
+
+    .videos-header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .videos-header h1 {
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .videos-sections {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .video-section-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      padding: 1.5rem;
+    }
+
+    .video-section-card h2 {
+      margin-bottom: 0.5rem;
+      font-size: 1.4rem;
+    }
+
+    .video-section-card p {
+      color: var(--text-muted);
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar" style="position: relative">
+    <div class="nav-container">
+      <a href="index.html" class="logo">Back to Home</a>
+    </div>
+  </nav>
+
+  <main class="videos-page">
+    <div class="container">
+      <div class="videos-header">
+        <h1>Training Videos</h1>
+        <p>Sections are generated from feature card titles in <code>content.json</code>.</p>
+      </div>
+      <div id="videos-sections" class="videos-sections"></div>
+    </div>
+  </main>
+
+  <script src="content.js"></script>
+  <script src="training-videos.js"></script>
+</body>
+
+</html>
