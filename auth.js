@@ -4,7 +4,7 @@ const msalConfig = {
     clientId: "d9051dac-005c-4352-b9e3-58aaf47061c3", // Replace with your Azure AD Client ID
     authority:
       "https://login.microsoftonline.com/aa947143-f10f-46fc-a1e0-b2e5cba0bbaa",
-    redirectUri: "https://prithu-homes.github.io/SiteTrainingApp",
+    redirectUri: "https://prithu-homes.github.io/SiteTrainingApp/",
   },
   cache: {
     cacheLocation: "localStorage",
@@ -14,6 +14,7 @@ const msalConfig = {
 
 document.addEventListener("DOMContentLoaded", () => {
   // MSAL Authentication Logic
+  console.log("MSAL Redirect URI:", msalConfig.auth.redirectUri);
   const myMSALObj = new msal.PublicClientApplication(msalConfig);
 
   function updateUI(account) {
