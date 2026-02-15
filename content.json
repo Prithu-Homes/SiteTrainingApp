@@ -31,8 +31,7 @@
     "storeAuthStateInCookie": false
   },
   "api": {
-    "generateVideoSasUrl": "https://sitetrainingappvideos-atgwa3cnhsfkdndw.centralindia-01.azurewebsites.net/api/GenerateVideoSas",
-    "functionCode": ""
+    "generateVideoSasUrl": "https://sitetrainingappvideos-atgwa3cnhsfkdndw.centralindia-01.azurewebsites.net/api/GenerateVideoSas"
   },
   "hero": {
     "title": "Hi, How are You today",

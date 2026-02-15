@@ -70,6 +70,30 @@ function getMsalConfigFromContent() {
   };
 }
 
+async function signInForVideos() {
+  if (!videosMsalApp) return;
+  const popupRedirectUri = new URL("auth-callback.html", window.location.href).href;
+  try {
+    await videosMsalApp.loginPopup({
+      scopes: ["User.Read"],
+      redirectUri: popupRedirectUri
+    });
+  } catch {
+    // no-op
+  }
+}
+
+async function signOutForVideos() {
+  if (!videosMsalApp) return;
+  const account = videosMsalApp.getAllAccounts()[0];
+  if (!account) return;
+  try {
+    await videosMsalApp.logoutPopup({ account });
+  } catch {
+    // no-op
+  }
+}
+
 async function getSignedInAccount() {
   if (!window.msal?.PublicClientApplication) {
     return null;
@@ -96,17 +120,39 @@ async function getSignedInAccount() {
 async function fetchSasUrl(fileName) {
   const apiConfig = getVideosAuthConfig();
   const endpoint = (apiConfig.generateVideoSasUrl || "").trim();
-  const functionCode = (apiConfig.functionCode || "").trim();
+  if (!endpoint) {
+    return null;
+  }
 
-  if (!endpoint || !functionCode) {
+  const account = await getSignedInAccount();
+  if (!account || !videosMsalApp) {
+    return null;
+  }
+
+  let token = "";
+  try {
+    const tokenResponse = await videosMsalApp.acquireTokenSilent({
+      account,
+      scopes: ["openid", "profile"]
+    });
+    token = (tokenResponse?.idToken || tokenResponse?.accessToken || "").trim();
+  } catch {
+    return null;
+  }
+
+  if (!token) {
     return null;
   }
 
   const requestUrl = new URL(endpoint);
   requestUrl.searchParams.set("file", fileName);
-  requestUrl.searchParams.set("code", functionCode);
 
-  const response = await fetch(requestUrl.toString(), { method: "GET" });
+  const response = await fetch(requestUrl.toString(), {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
   if (!response.ok) {
     return null;
   }
@@ -220,6 +266,25 @@ async function renderTrainingVideoSections() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const loginBtn = document.getElementById("videos-login-btn");
+  const logoutBtn = document.getElementById("videos-logout-btn");
+
+  if (loginBtn) {
+    loginBtn.addEventListener("click", async () => {
+      await getSignedInAccount();
+      await signInForVideos();
+      await renderTrainingVideoSections();
+    });
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      await getSignedInAccount();
+      await signOutForVideos();
+      await renderTrainingVideoSections();
+    });
+  }
+
   window.addEventListener("contentReady", renderTrainingVideoSections);
 
   if (window.appContent && Object.keys(window.appContent).length > 0) {

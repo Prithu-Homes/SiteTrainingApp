@@ -1,9 +1,16 @@
 using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Azure.Storage;
 using Azure.Storage.Sas;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Logging;
 
 namespace Company.Function;
@@ -11,6 +18,7 @@ namespace Company.Function;
 public class GenerateVideoSas
 {
     private const string DefaultContainerName = "trainingvideos";
+    private static readonly JwtSecurityTokenHandler TokenHandler = new();
     private readonly ILogger<GenerateVideoSas> _logger;
 
     public GenerateVideoSas(ILogger<GenerateVideoSas> logger)
@@ -19,10 +27,23 @@ public class GenerateVideoSas
     }
 
     [Function("GenerateVideoSas")]
-    public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+    public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
     {
         try
         {
+            var aadTenantId = Environment.GetEnvironmentVariable("AzureAdTenantId");
+            var aadClientId = Environment.GetEnvironmentVariable("AzureAdClientId");
+            if (string.IsNullOrWhiteSpace(aadTenantId) || string.IsNullOrWhiteSpace(aadClientId))
+            {
+                _logger.LogError("Azure AD configuration is missing.");
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+            }
+
+            if (!await IsAuthorizedAsync(req, aadTenantId, aadClientId))
+            {
+                return new UnauthorizedObjectResult(new { error = "Unauthorized. Valid Azure AD token required." });
+            }
+
             var file = req.Query["file"].ToString();
             if (string.IsNullOrWhiteSpace(file))
             {
@@ -75,6 +96,51 @@ public class GenerateVideoSas
         {
             _logger.LogError(ex, "Failed to generate SAS URL.");
             return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+        }
+    }
+
+    private static async Task<bool> IsAuthorizedAsync(HttpRequest req, string tenantId, string clientId)
+    {
+        var authHeader = req.Headers["Authorization"].FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var token = authHeader.Substring("Bearer ".Length).Trim();
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return false;
+        }
+
+        var authority = $"https://login.microsoftonline.com/{tenantId}/v2.0";
+        var metadataAddress = $"{authority}/.well-known/openid-configuration";
+        var configManager = new ConfigurationManager<OpenIdConnectConfiguration>(
+            metadataAddress,
+            new OpenIdConnectConfigurationRetriever(),
+            new HttpDocumentRetriever { RequireHttps = true });
+
+        var openIdConfig = await configManager.GetConfigurationAsync(CancellationToken.None);
+        var validationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = authority,
+            ValidateAudience = true,
+            ValidAudience = clientId,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKeys = openIdConfig.SigningKeys,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(2)
+        };
+
+        try
+        {
+            TokenHandler.ValidateToken(token, validationParameters, out _);
+            return true;
+        }
+        catch (SecurityTokenException)
+        {
+            return false;
         }
     }
 }
