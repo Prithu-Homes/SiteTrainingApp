@@ -5,32 +5,23 @@ window.appContent = {};
 const contentReadyEvent = new Event("contentReady");
 
 async function loadContent() {
-  // 1. Try LocalStorage first (Fastest for returning users/edits)
-  const stored = localStorage.getItem("siteContent");
-  if (stored) {
-    try {
-      window.appContent = JSON.parse(stored);
-      updateDOM();
-      window.dispatchEvent(contentReadyEvent);
-      return;
-    } catch (e) {
-      console.error("Error parsing stored content:", e);
-      localStorage.removeItem("siteContent");
-    }
-  }
-
-  // 2. Fetch from JSON file (Default)
+  // 1. Fetch from JSON file (Base of Truth)
+  let fileContent = {};
   try {
     const response = await fetch("content.json");
-    if (!response.ok)
-      throw new Error(`Failed to load content.json: ${response.status}`);
-    window.appContent = await response.json();
-    updateDOM();
-    window.dispatchEvent(contentReadyEvent);
+    if (response.ok) {
+      fileContent = await response.json();
+    } else {
+      console.error(`Failed to load content.json: ${response.status}`);
+    }
   } catch (error) {
     console.error("Error loading content:", error);
-    alert("Error loading content. Check console for details.");
   }
+
+  window.appContent = fileContent;
+
+  updateDOM();
+  window.dispatchEvent(contentReadyEvent);
 }
 
 /**
