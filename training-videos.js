@@ -11,6 +11,8 @@ function buildTrainingSectionId(card, index) {
 
 let videosMsalApp = null;
 let authInitPromise = null;
+let modalElement = null;
+let modalPlayer = null;
 
 function escapeHtml(value) {
   return String(value || "")
@@ -68,30 +70,6 @@ function getMsalConfigFromContent() {
       storeAuthStateInCookie: Boolean(msalConfig.storeAuthStateInCookie)
     }
   };
-}
-
-async function signInForVideos() {
-  if (!videosMsalApp) return;
-  const popupRedirectUri = new URL("auth-callback.html", window.location.href).href;
-  try {
-    await videosMsalApp.loginPopup({
-      scopes: ["User.Read"],
-      redirectUri: popupRedirectUri
-    });
-  } catch {
-    // no-op
-  }
-}
-
-async function signOutForVideos() {
-  if (!videosMsalApp) return;
-  const account = videosMsalApp.getAllAccounts()[0];
-  if (!account) return;
-  try {
-    await videosMsalApp.logoutPopup({ account });
-  } catch {
-    // no-op
-  }
 }
 
 async function getSignedInAccount() {
@@ -191,12 +169,6 @@ async function renderTrainingVideoSections() {
   if (!container) return;
 
   const account = await getSignedInAccount();
-  const accountBanner = document.getElementById("videos-auth-status");
-  if (accountBanner) {
-    accountBanner.textContent = account
-      ? `Signed in as ${account.name || account.username || "user"}`
-      : "You are not signed in. Blob videos require login.";
-  }
 
   const cards = window.appContent?.features?.cards || [];
   if (cards.length === 0) {
@@ -263,29 +235,72 @@ async function renderTrainingVideoSections() {
   );
 
   container.innerHTML = cardHtmlList.join("");
+  scrollToHashSection();
+}
+
+function scrollToHashSection() {
+  const hash = window.location.hash || "";
+  if (!hash || hash === "#") return;
+
+  const sectionId = decodeURIComponent(hash.slice(1));
+  const target = document.getElementById(sectionId);
+  if (!target) return;
+
+  target.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function openVideoModal(videoSource) {
+  if (!modalElement || !modalPlayer || !videoSource) return;
+  modalPlayer.src = videoSource;
+  modalElement.classList.add("open");
+  modalElement.setAttribute("aria-hidden", "false");
+  modalPlayer.play().catch(() => {});
+}
+
+function closeVideoModal() {
+  if (!modalElement || !modalPlayer) return;
+  modalPlayer.pause();
+  modalPlayer.removeAttribute("src");
+  modalPlayer.load();
+  modalElement.classList.remove("open");
+  modalElement.setAttribute("aria-hidden", "true");
+}
+
+function bindVideoModalEvents() {
+  modalElement = document.getElementById("video-modal");
+  modalPlayer = document.getElementById("video-modal-player");
+  const closeButton = document.getElementById("video-modal-close");
+  const sectionsContainer = document.getElementById("videos-sections");
+  if (!modalElement || !modalPlayer || !closeButton || !sectionsContainer) return;
+
+  sectionsContainer.addEventListener("click", (event) => {
+    const inlineVideo = event.target.closest(".training-video-player");
+    if (!inlineVideo) return;
+
+    const source = inlineVideo.currentSrc || inlineVideo.querySelector("source")?.src || "";
+    if (!source) return;
+    openVideoModal(source);
+  });
+
+  closeButton.addEventListener("click", closeVideoModal);
+  modalElement.addEventListener("click", (event) => {
+    if (event.target === modalElement) {
+      closeVideoModal();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeVideoModal();
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const loginBtn = document.getElementById("videos-login-btn");
-  const logoutBtn = document.getElementById("videos-logout-btn");
-
-  if (loginBtn) {
-    loginBtn.addEventListener("click", async () => {
-      await getSignedInAccount();
-      await signInForVideos();
-      await renderTrainingVideoSections();
-    });
-  }
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", async () => {
-      await getSignedInAccount();
-      await signOutForVideos();
-      await renderTrainingVideoSections();
-    });
-  }
+  bindVideoModalEvents();
 
   window.addEventListener("contentReady", renderTrainingVideoSections);
+  window.addEventListener("hashchange", scrollToHashSection);
 
   if (window.appContent && Object.keys(window.appContent).length > 0) {
     renderTrainingVideoSections();
