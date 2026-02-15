@@ -1,51 +1,44 @@
 /**
  * Video Configuration
- * Manages paths and settings for video assets.
- */
-const videoConfig = {
-  hero: {
-    elementId: "hero-video",
-    // Ensure this file exists in assets/videos/
-    src: "assets/videos/hero-workout.mp4",
-    poster: "assets/images/hero-poster.jpg",
-    autoplay: true,
-    muted: true,
-  },
-};
-
-/**
- * Loads the hero video dynamically to optimize performance.
+ * Loads video settings dynamically from window.appContent (populated by content.js)
  */
 function loadHeroVideo() {
-  const config = videoConfig.hero;
-  const videoElement = document.getElementById(config.elementId);
-
-  if (!videoElement) {
-    console.warn(`Video element with ID '${config.elementId}' not found.`);
+  // 1. Wait for Content to be loaded
+  if (!window.appContent || !window.appContent.hero) {
+    window.addEventListener("contentReady", loadHeroVideo);
     return;
   }
 
-  // Set poster
+  const config = window.appContent.hero;
+  const videoElement = document.getElementById("hero-video");
+
+  if (!videoElement) {
+    console.warn("Hero video element not found.");
+    return;
+  }
+
+  // 2. Set Poster
   if (config.poster) {
     videoElement.poster = config.poster;
   }
 
-  // Create source
-  const source = document.createElement("source");
-  source.src = config.src;
-  source.type = "video/mp4";
+  // 3. Set Video Source
+  if (config.video) {
+    // Clear previous sources
+    videoElement.innerHTML = "";
 
-  videoElement.appendChild(source);
+    const source = document.createElement("source");
+    source.src = config.video;
+    source.type = "video/mp4";
+    videoElement.appendChild(source);
 
-  // Handle autoplay
-  if (config.autoplay) {
-    videoElement.muted = config.muted; // Autoplay usually requires muted
+    // 4. Attempt Autoplay
+    videoElement.muted = true; // Required for autoplay
     const playPromise = videoElement.play();
 
     if (playPromise !== undefined) {
       playPromise.catch((error) => {
-        console.log("Autoplay prevented:", error);
-        // Add UI fallback here if needed (e.g., show a play button)
+        console.log("Autoplay prevented or video missing:", error);
       });
     }
   }

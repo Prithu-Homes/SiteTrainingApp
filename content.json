@@ -3,7 +3,9 @@
     "title": "Hi, How are You today",
     "subtitle": "I am Your Training Partner, from the comfort of your home, work, or anywhere you choose.",
     "ctaPrimary": "Start Free Trial",
-    "ctaSecondary": "Explore Equipment"
+    "ctaSecondary": "Explore Equipment",
+    "video": "assets/videos/hero-workout.mp4",
+    "poster": "assets/images/hero-poster.jpg"
   },
   "features": {
     "heading": "Train Anywhere",
