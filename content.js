@@ -15,6 +15,17 @@ function buildTrainingSectionId(card, index) {
   return `${slug || "section"}-${index + 1}`;
 }
 
+function normalizeNavHref(href) {
+  const value = String(href || "").trim();
+  if (!value.startsWith("#")) {
+    return value || "#";
+  }
+
+  const page = (window.location.pathname.split("/").pop() || "").toLowerCase();
+  const isHomePage = page === "" || page === "index.html";
+  return isHomePage ? value : `index.html${value}`;
+}
+
 async function loadContent() {
   // 1. Fetch from JSON file (Base of Truth)
   let fileContent = {};
@@ -64,7 +75,7 @@ function updateDOM() {
   if (navLinksContainer) {
     const navLinks = window.appContent.navigation?.links || [];
     navLinksContainer.innerHTML = navLinks
-      .map((link) => `<a href="${link.href}">${link.label}</a>`)
+      .map((link) => `<a href="${normalizeNavHref(link.href)}">${link.label}</a>`)
       .join("");
   }
 
