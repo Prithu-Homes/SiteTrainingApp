@@ -9,6 +9,9 @@ function buildTrainingSectionId(card, index) {
   return `${slug || "section"}-${index + 1}`;
 }
 
+let videosMsalApp = null;
+let authInitPromise = null;
+
 function escapeHtml(value) {
   return String(value || "")
     .replaceAll("&", "&amp;")
@@ -23,9 +26,131 @@ function toSequenceNumber(value, fallback) {
   return Number.isFinite(num) ? num : fallback;
 }
 
-function renderTrainingVideoSections() {
+function isAzureBlobUrl(url) {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url, window.location.href);
+    return parsed.hostname.endsWith(".blob.core.windows.net");
+  } catch {
+    return false;
+  }
+}
+
+function getBlobFileName(url) {
+  try {
+    const parsed = new URL(url, window.location.href);
+    const parts = parsed.pathname.split("/").filter(Boolean);
+    if (parts.length < 2) return "";
+    return decodeURIComponent(parts[parts.length - 1]);
+  } catch {
+    return "";
+  }
+}
+
+function getVideosAuthConfig() {
+  return window.appContent?.api || {};
+}
+
+function getMsalConfigFromContent() {
+  const msalConfig = window.appContent?.msal;
+  if (!msalConfig?.clientId || !msalConfig?.authority || !msalConfig?.redirectUri) {
+    return null;
+  }
+
+  return {
+    auth: {
+      clientId: msalConfig.clientId,
+      authority: msalConfig.authority,
+      redirectUri: msalConfig.redirectUri
+    },
+    cache: {
+      cacheLocation: msalConfig.cacheLocation || "localStorage",
+      storeAuthStateInCookie: Boolean(msalConfig.storeAuthStateInCookie)
+    }
+  };
+}
+
+async function getSignedInAccount() {
+  if (!window.msal?.PublicClientApplication) {
+    return null;
+  }
+
+  const config = getMsalConfigFromContent();
+  if (!config) {
+    return null;
+  }
+
+  if (!videosMsalApp) {
+    videosMsalApp = new window.msal.PublicClientApplication(config);
+  }
+
+  if (!authInitPromise) {
+    authInitPromise = videosMsalApp.handleRedirectPromise().catch(() => null);
+  }
+  await authInitPromise;
+
+  const accounts = videosMsalApp.getAllAccounts();
+  return accounts.length > 0 ? accounts[0] : null;
+}
+
+async function fetchSasUrl(fileName) {
+  const apiConfig = getVideosAuthConfig();
+  const endpoint = (apiConfig.generateVideoSasUrl || "").trim();
+  const functionCode = (apiConfig.functionCode || "").trim();
+
+  if (!endpoint || !functionCode) {
+    return null;
+  }
+
+  const requestUrl = new URL(endpoint);
+  requestUrl.searchParams.set("file", fileName);
+  requestUrl.searchParams.set("code", functionCode);
+
+  const response = await fetch(requestUrl.toString(), { method: "GET" });
+  if (!response.ok) {
+    return null;
+  }
+
+  const payload = await response.json();
+  return payload?.sasUrl || null;
+}
+
+async function resolveVideoUrl(originalUrl, account) {
+  if (!isAzureBlobUrl(originalUrl)) {
+    return { url: originalUrl, locked: false, error: "" };
+  }
+
+  if (!account) {
+    return { url: "", locked: true, error: "Log in to load this video." };
+  }
+
+  const fileName = getBlobFileName(originalUrl);
+  if (!fileName) {
+    return { url: "", locked: false, error: "Video file name is invalid." };
+  }
+
+  try {
+    const sasUrl = await fetchSasUrl(fileName);
+    if (!sasUrl) {
+      return { url: "", locked: false, error: "Unable to generate secure video URL." };
+    }
+    return { url: sasUrl, locked: false, error: "" };
+  } catch {
+    return { url: "", locked: false, error: "Unable to generate secure video URL." };
+  }
+}
+
+async function renderTrainingVideoSections() {
   const container = document.getElementById("videos-sections");
   if (!container) return;
+
+  const account = await getSignedInAccount();
+  const accountBanner = document.getElementById("videos-auth-status");
+  if (accountBanner) {
+    accountBanner.textContent = account
+      ? `Signed in as ${account.name || account.username || "user"}`
+      : "You are not signed in. Blob videos require login.";
+  }
 
   const cards = window.appContent?.features?.cards || [];
   if (cards.length === 0) {
@@ -34,8 +159,8 @@ function renderTrainingVideoSections() {
     return;
   }
 
-  container.innerHTML = cards
-    .map((card, index) => {
+  const cardHtmlList = await Promise.all(
+    cards.map(async (card, index) => {
       const title = (card.title || `Section ${index + 1}`).trim();
       const sectionId = buildTrainingSectionId(card, index);
       const videos = Array.isArray(card.videos) ? card.videos : [];
@@ -47,19 +172,27 @@ function renderTrainingVideoSections() {
 
       const videosHtml =
         sortedVideos.length > 0
-          ? sortedVideos
-              .map((video, videoIndex) => {
+          ? (
+            await Promise.all(
+              sortedVideos.map(async (video, videoIndex) => {
                 const sequence = toSequenceNumber(video.sequence, videoIndex + 1);
                 const name = escapeHtml(video.name || `Video ${videoIndex + 1}`);
                 const description = escapeHtml(video.description || "");
-                const url = escapeHtml(video.url || "");
-
-                return `
-                  <article class="training-video-item">
+                const resolved = await resolveVideoUrl(video.url || "", account);
+                const url = escapeHtml(resolved.url);
+                const error = escapeHtml(resolved.error);
+                const mediaBlock = resolved.url
+                  ? `
                     <video class="training-video-player" controls preload="metadata">
                       <source src="${url}" type="video/mp4" />
                       Your browser does not support the video tag.
                     </video>
+                  `
+                  : `<p class="empty-videos">${error || "Video unavailable."}</p>`;
+
+                return `
+                  <article class="training-video-item">
+                    ${mediaBlock}
                     <div class="training-video-meta">
                       <p><strong>Sequence:</strong> ${sequence}</p>
                       <p><strong>Name:</strong> ${name}</p>
@@ -67,8 +200,9 @@ function renderTrainingVideoSections() {
                     </div>
                   </article>
                 `;
-              })
-              .join("")
+              }),
+            )
+          ).join("")
           : `<p class="empty-videos">No videos added for this section yet.</p>`;
 
       return `
@@ -79,8 +213,10 @@ function renderTrainingVideoSections() {
           </div>
         </section>
       `;
-    })
-    .join("");
+    }),
+  );
+
+  container.innerHTML = cardHtmlList.join("");
 }
 
 document.addEventListener("DOMContentLoaded", () => {

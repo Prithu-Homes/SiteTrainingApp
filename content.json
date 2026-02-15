@@ -30,6 +30,10 @@
     "cacheLocation": "localStorage",
     "storeAuthStateInCookie": false
   },
+  "api": {
+    "generateVideoSasUrl": "https://sitetrainingappvideos-atgwa3cnhsfkdndw.centralindia-01.azurewebsites.net/api/GenerateVideoSas",
+    "functionCode": ""
+  },
   "hero": {
     "title": "Hi, How are You today",
     "subtitle": "I am Your Training Partner, from the comfort of your home, work, or anywhere you choose.",

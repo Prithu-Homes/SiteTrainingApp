@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Training Videos</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://alcdn.msauth.net/browser/2.32.0/js/msal-browser.min.js"></script>
   <style>
     .videos-page {
       padding: 6rem 2rem 3rem;
@@ -95,6 +96,7 @@
       <div class="videos-header">
         <h1>Training Videos</h1>
         <p>Sections are generated from feature card titles in <code>content.json</code>.</p>
+        <p id="videos-auth-status"></p>
       </div>
       <div id="videos-sections" class="videos-sections"></div>
     </div>

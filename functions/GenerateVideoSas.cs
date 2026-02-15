@@ -10,7 +10,7 @@ namespace Company.Function;
 
 public class GenerateVideoSas
 {
-    private const string ContainerName = "trainingvideos";
+    private const string DefaultContainerName = "trainingvideos";
     private readonly ILogger<GenerateVideoSas> _logger;
 
     public GenerateVideoSas(ILogger<GenerateVideoSas> logger)
@@ -31,6 +31,11 @@ public class GenerateVideoSas
 
             var storageAccountName = Environment.GetEnvironmentVariable("StorageAccountName");
             var storageAccountKey = Environment.GetEnvironmentVariable("StorageAccountKey");
+            var containerName = Environment.GetEnvironmentVariable("TrainingVideosContainer");
+            if (string.IsNullOrWhiteSpace(containerName))
+            {
+                containerName = DefaultContainerName;
+            }
 
             if (string.IsNullOrWhiteSpace(storageAccountName) || string.IsNullOrWhiteSpace(storageAccountKey))
             {
@@ -52,7 +57,7 @@ public class GenerateVideoSas
 
             var sasBuilder = new BlobSasBuilder
             {
-                BlobContainerName = ContainerName,
+                BlobContainerName = containerName,
                 BlobName = file,
                 Resource = "b",
                 StartsOn = DateTimeOffset.UtcNow.AddMinutes(-1),
@@ -60,7 +65,7 @@ public class GenerateVideoSas
             };
             sasBuilder.SetPermissions(BlobSasPermissions.Read);
 
-            var blobUrl = $"https://{storageAccountName}.blob.core.windows.net/{ContainerName}/{Uri.EscapeDataString(file)}";
+            var blobUrl = $"https://{storageAccountName}.blob.core.windows.net/{containerName}/{Uri.EscapeDataString(file)}";
             var sasToken = sasBuilder.ToSasQueryParameters(credential).ToString();
             var sasUrl = $"{blobUrl}?{sasToken}";
 
