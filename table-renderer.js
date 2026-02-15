@@ -11,8 +11,11 @@ document.addEventListener("DOMContentLoaded", () => {
 function initTableRenderer() {
   const container = document.getElementById("tables-container");
 
-  // Prevent double rendering
-  if (!container || container.innerHTML !== "") return;
+  // Prevent double rendering (check if content is already rendered)
+  if (!container || container.querySelector(".data-section")) return;
+
+  // Clear placeholder content (like comments/whitespace)
+  container.innerHTML = "";
 
   // 1. Render Hero Section Data
   createTableFromObject(
