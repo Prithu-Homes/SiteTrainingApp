@@ -43,10 +43,43 @@ document.addEventListener("DOMContentLoaded", () => {
   // 4. Mobile Menu Toggle (Simple implementation)
   const hamburger = document.querySelector(".hamburger");
   const navLinks = document.querySelector(".nav-links");
+  const navAuth = document.querySelector(".nav-auth");
+
+  const isMobileViewport = () => window.matchMedia("(max-width: 768px)").matches;
+
+  const closeMobileMenu = () => {
+    if (!navbar) return;
+    navbar.classList.remove("mobile-open");
+    if (isMobileViewport()) {
+      if (navLinks) navLinks.style.display = "none";
+      if (navAuth) navAuth.style.display = "none";
+    } else {
+      if (navLinks) navLinks.style.display = "";
+      if (navAuth) navAuth.style.display = "";
+    }
+  };
+
+  const openMobileMenu = () => {
+    if (!navbar) return;
+    navbar.classList.add("mobile-open");
+    if (navLinks) navLinks.style.display = "flex";
+    if (navAuth) navAuth.style.display = "flex";
+  };
+
+  if (isMobileViewport()) {
+    if (navLinks) navLinks.style.display = "none";
+    if (navAuth) navAuth.style.display = "none";
+  }
+
   // Note: In a real app, you'd toggle a class on a mobile menu container
   if (hamburger && navbar) {
     hamburger.addEventListener("click", () => {
-      navbar.classList.toggle("mobile-open");
+      const isOpen = navbar.classList.contains("mobile-open");
+      if (isOpen) {
+        closeMobileMenu();
+      } else {
+        openMobileMenu();
+      }
     });
   }
 
@@ -54,13 +87,17 @@ document.addEventListener("DOMContentLoaded", () => {
     navLinks.addEventListener("click", (e) => {
       const link = e.target.closest("a");
       if (!link) return;
-      navbar.classList.remove("mobile-open");
+      closeMobileMenu();
     });
   }
 
   document.addEventListener("click", (e) => {
     if (!navbar || !navbar.classList.contains("mobile-open")) return;
     if (e.target.closest(".navbar")) return;
-    navbar.classList.remove("mobile-open");
+    closeMobileMenu();
+  });
+
+  window.addEventListener("resize", () => {
+    closeMobileMenu();
   });
 });
