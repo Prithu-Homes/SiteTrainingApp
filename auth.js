@@ -14,6 +14,7 @@ const msalConfig = {
 
 // Initialize MSAL globally to ensure it handles popup redirects immediately
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
+const popupRedirectUri = new URL("auth-callback.html", window.location.href).href;
 
 // Start handling the redirect immediately to catch the hash before DOM loads
 const redirectPromise = myMSALObj.handleRedirectPromise();
@@ -73,7 +74,10 @@ document.addEventListener("DOMContentLoaded", () => {
     loginBtn.addEventListener("click", (e) => {
       e.preventDefault();
       myMSALObj
-        .loginPopup({ scopes: ["User.Read"] })
+        .loginPopup({
+          scopes: ["User.Read"],
+          redirectUri: popupRedirectUri,
+        })
         .then((response) => {
           updateUI(response.account);
         })
