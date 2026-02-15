@@ -105,6 +105,11 @@ function updateDOM() {
     window.appContent.hero?.ctaPrimary || "";
   document.querySelector(".hero-content .btn-outline").textContent =
     window.appContent.hero?.ctaSecondary || "";
+  const heroCtaContainer = document.querySelector(".hero-content .cta-buttons");
+  if (heroCtaContainer) {
+    const showCtas = Boolean(window.appContent.hero?.showCtas);
+    heroCtaContainer.style.display = showCtas ? "flex" : "none";
+  }
 
   // 2. Populate Features Header
   document.querySelector(".section-header h2").textContent =
