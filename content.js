@@ -141,7 +141,10 @@ function renderImageSequence() {
 
   // Create enough duplicates to fill screen and scroll smoothly
   const imagesHtml = images
-    .map((img) => `<img src="${img.src}" alt="">`)
+    .map(
+      (img) =>
+        `<img src="${img.src}" alt="" onerror="this.style.display='none'">`,
+    )
     .join("");
   const trackContent = imagesHtml + imagesHtml + imagesHtml + imagesHtml;
 

@@ -1,150 +1,128 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Prithu Homes - Training App</title>
-    <link rel="stylesheet" href="style.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <!-- MSAL.js for Microsoft Authentication -->
-    <script src="https://alcdn.msauth.net/browser/2.32.0/js/msal-browser.min.js"></script>
-  </head>
-  <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-      <div class="nav-container">
-        <div style="display: flex; align-items: center; gap: 1rem">
-          <a href="https://www.prithu.in" class="logo">
-            <img src="assets/images/PrithuHomesLogo.avif" alt="Prithu Homes" />
-          </a>
-          <img
-            src="assets/images/trainingAppLogo.png"
-            alt="Training App"
-            style="height: 40px; width: auto"
-          />
-        </div>
-        <div class="nav-links">
-          <a href="#workouts">Workouts</a>
-          <a href="#equipment">Equipment</a>
-          <a href="#coaches">Coaches</a>
-          <a href="data-view.html">Data View</a>
-        </div>
-        <div class="nav-auth">
-          <div
-            id="guest-area"
-            style="display: flex; gap: 1.5rem; align-items: center"
-          >
-            <a href="#" id="login-btn" class="btn-text">Log In</a>
-            <a href="#" id="signup-btn" class="btn btn-primary">Sign Up</a>
-          </div>
-          <div
-            id="user-area"
-            class="hidden"
-            style="display: flex; gap: 1.5rem; align-items: center"
-          >
-            <span id="user-name" style="font-weight: 600"></span>
-            <a href="#" id="logout-btn" class="btn-text">Log Out</a>
-          </div>
-        </div>
-        <div class="hamburger"><span></span><span></span><span></span></div>
-      </div>
-    </nav>
 
-    <!-- Hero Section -->
-    <header class="hero">
-      <div class="video-container">
-        <video id="hero-video" class="video-bg" muted loop playsinline></video>
-        <div class="overlay"></div>
-      </div>
-      <div class="hero-content">
-        <h1></h1>
-        <p></p>
-        <div class="cta-buttons">
-          <button class="btn btn-primary"></button>
-          <button class="btn btn-outline"></button>
-        </div>
-      </div>
-    </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prithu Homes - Training App</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <!-- MSAL.js for Microsoft Authentication -->
+  <script src="https://alcdn.msauth.net/browser/2.32.0/js/msal-browser.min.js"></script>
+</head>
 
-    <!-- Features Section -->
-    <section id="workouts" class="features">
-      <div class="container">
-        <div class="section-header">
-          <h2>Train Anywhere</h2>
-          <p>Access thousands of workouts led by world-class trainers.</p>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div style="display: flex; align-items: center; gap: 1rem">
+        <a href="https://www.prithu.in" class="logo">
+          <img src="assets/images/PrithuHomesLogo.avif" alt="Prithu Homes" />
+        </a>
+        <img src="assets/images/trainingAppLogo.png" alt="Training App" style="height: 40px; width: auto" />
+      </div>
+      <div class="nav-links">
+        <a href="#workouts">Workouts</a>
+        <a href="#equipment">Equipment</a>
+        <a href="#coaches">Coaches</a>
+        <a href="data-view.html">Data View</a>
+      </div>
+      <div class="nav-auth">
+        <div id="guest-area" style="display: flex; gap: 1.5rem; align-items: center">
+          <a href="#" id="login-btn" class="btn-text">Log In</a>
+          <a href="#" id="signup-btn" class="btn btn-primary">Sign Up</a>
         </div>
-        <div class="feature-grid">
-          <div class="card">
-            <div class="card-image">
-              <!-- Placeholder image logic included -->
-              <img
-                src="assets/images/global.jpg"
-                alt="Global Workouts"
-                onerror="
+        <div id="user-area" class="hidden" style="display: flex; gap: 1.5rem; align-items: center">
+          <span id="user-name" style="font-weight: 600"></span>
+          <a href="#" id="logout-btn" class="btn-text">Log Out</a>
+        </div>
+      </div>
+      <div class="hamburger"><span></span><span></span><span></span></div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="video-container">
+      <video id="hero-video" class="video-bg" muted loop playsinline></video>
+      <div class="overlay"></div>
+    </div>
+    <div class="hero-content">
+      <h1></h1>
+      <p></p>
+      <div class="cta-buttons">
+        <button class="btn btn-primary"></button>
+        <button class="btn btn-outline"></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Features Section -->
+  <section id="workouts" class="features">
+    <div class="container">
+      <div class="section-header">
+        <h2>Train Anywhere</h2>
+        <p>Access thousands of workouts led by world-class trainers.</p>
+      </div>
+      <div class="feature-grid">
+        <div class="card">
+          <div class="card-image">
+            <!-- Placeholder image logic included -->
+            <img src="assets/images/global.jpg" alt="Global Workouts" onerror="
                   this.style.display = 'none';
                   this.parentElement.style.backgroundColor = '#ccc';
-                "
-              />
-              <div class="card-badge">Global</div>
-            </div>
-            <div class="card-body">
-              <h3>Global Workouts</h3>
-              <p>Run in London, cycle in the Alps, or row in Antarctica.</p>
-            </div>
+                " />
+            <div class="card-badge">Global</div>
           </div>
-          <div class="card">
-            <div class="card-image">
-              <img
-                src="assets/images/studio.jpg"
-                alt="Studio Classes"
-                onerror="
+          <div class="card-body">
+            <h3>Global Workouts</h3>
+            <p>Run in London, cycle in the Alps, or row in Antarctica.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-image">
+            <img src="assets/images/studio.jpg" alt="Studio Classes" onerror="
                   this.style.display = 'none';
                   this.parentElement.style.backgroundColor = '#ccc';
-                "
-              />
-              <div class="card-badge">Studio</div>
-            </div>
-            <div class="card-body">
-              <h3>Studio Classes</h3>
-              <p>High-energy studio sessions with motivating instructors.</p>
-            </div>
+                " />
+            <div class="card-badge">Studio</div>
           </div>
-          <div class="card">
-            <div class="card-image">
-              <img
-                src="assets/images/yoga.jpg"
-                alt="Yoga & Mindfulness"
-                onerror="
+          <div class="card-body">
+            <h3>Studio Classes</h3>
+            <p>High-energy studio sessions with motivating instructors.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-image">
+            <img src="assets/images/yoga.jpg" alt="Yoga & Mindfulness" onerror="
                   this.style.display = 'none';
                   this.parentElement.style.backgroundColor = '#ccc';
-                "
-              />
-              <div class="card-badge">Wellness</div>
-            </div>
-            <div class="card-body">
-              <h3>Yoga & Mindfulness</h3>
-              <p>Strengthen your body and mind with guided sessions.</p>
-            </div>
+                " />
+            <div class="card-badge">Wellness</div>
+          </div>
+          <div class="card-body">
+            <h3>Yoga & Mindfulness</h3>
+            <p>Strengthen your body and mind with guided sessions.</p>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <footer>
-      <div class="container">
-        <p>&copy; 2023 Fitness Pro. All rights reserved.</p>
-      </div>
-    </footer>
+  <footer>
+    <div class="container">
+      <p id="footer-text"></p>
+    </div>
+  </footer>
 
-    <!-- Scripts -->
-    <script src="videos.js"></script>
-    <script src="auth.js"></script>
-    <script src="content.js"></script>
-    <script src="script.js"></script>
-  </body>
+
+  <!-- Scripts -->
+  <script src="videos.js"></script>
+  <script src="auth.js"></script>
+  <script src="content.js"></script>
+  <script src="script.js"></script>
+</body>
+
 </html>
