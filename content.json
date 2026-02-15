@@ -43,11 +43,11 @@
     "subheading": "Access thousands of workouts led by world-class trainers.",
     "cards": [
       {
-        "image": "assets/images/global.jpg",
-        "alt": "Global Workouts",
-        "badge": "Global",
-        "title": "Global Workouts",
-        "description": "Run in London, cycle in the Alps, or row in Antarctica."
+        "image": "assets/images/construction.jpg",
+        "alt": "Construction",
+        "badge": "Construction",
+        "title": "Construction",
+        "description": "Sharpen Your Knowledge around best construction practices and techniques."
       },
       {
         "image": "assets/images/studio.jpg",
