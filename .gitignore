@@ -262,3 +262,7 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+# Azure Function publish artifacts
+functions/publish-out/
+functions/publish.zip
