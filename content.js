@@ -2,7 +2,7 @@
  * Static Content Configuration
  * Centralizes all text and data for the website.
  */
-const appContent = {
+const defaultAppContent = {
   hero: {
     title: "Interactive Personal Training",
     subtitle: "Experience global workouts from the comfort of your home.",
@@ -35,6 +35,10 @@ const appContent = {
   },
   footer: "&copy; 2023 Fitness Pro. All rights reserved.",
 };
+
+// Load content from LocalStorage if available, otherwise use default
+let appContent =
+  JSON.parse(localStorage.getItem("siteContent")) || defaultAppContent;
 
 document.addEventListener("DOMContentLoaded", () => {
   // Guard clause: Only run if we are on the main page (checking for hero section)
