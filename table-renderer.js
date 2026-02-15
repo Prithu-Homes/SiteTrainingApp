@@ -80,8 +80,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const rows = container.querySelectorAll("tbody tr");
     const obj = {};
     rows.forEach((row) => {
-      const key = row.cells[0].innerText;
-      const value = row.cells[1].innerText;
+      const key = row.cells[0].innerText.trim();
+      const value = row.cells[1].innerText.trim();
       obj[key] = value;
     });
     return obj;
@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return Array.from(rows).map((row) => {
       const obj = {};
       Array.from(row.cells).forEach((cell, index) => {
-        obj[headers[index]] = cell.innerText;
+        obj[headers[index]] = cell.innerText.trim();
       });
       return obj;
     });

@@ -37,10 +37,22 @@ const defaultAppContent = {
 };
 
 // Load content from LocalStorage if available, otherwise use default
-let appContent =
-  JSON.parse(localStorage.getItem("siteContent")) || defaultAppContent;
+let appContent = defaultAppContent;
+
+function loadContent() {
+  const stored = localStorage.getItem("siteContent");
+  if (stored) {
+    appContent = JSON.parse(stored);
+  }
+}
+
+// Initial load for external scripts
+loadContent();
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Re-load content to ensure we have the latest version on page load
+  loadContent();
+
   // Guard clause: Only run if we are on the main page (checking for hero section)
   if (!document.querySelector(".hero-content")) return;
 
