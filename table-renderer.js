@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("contentReady", initTableRenderer);
 
   // If content is already loaded by the time this script runs
-  if (appContent && Object.keys(appContent).length > 0) {
+  if (window.appContent && Object.keys(window.appContent).length > 0) {
     initTableRenderer();
   }
 });
@@ -15,24 +15,28 @@ function initTableRenderer() {
   if (!container || container.innerHTML !== "") return;
 
   // 1. Render Hero Section Data
-  createTableFromObject("Hero Section", appContent.hero, "hero-section");
+  createTableFromObject(
+    "Hero Section",
+    window.appContent.hero || {},
+    "hero-section",
+  );
 
   // 2. Render Features Section Data (excluding cards array)
-  const featuresData = { ...appContent.features };
+  const featuresData = { ...(window.appContent.features || {}) };
   delete featuresData.cards; // Remove array to handle separately
   createTableFromObject("Features Section", featuresData, "features-section");
 
   // 3. Render Feature Cards (Array)
   createTableFromArray(
     "Feature Cards",
-    appContent.features.cards,
+    window.appContent.features?.cards || [],
     "cards-section",
   );
 
   // 4. Render Footer
   createTableFromObject(
     "Footer",
-    { text: appContent.footer },
+    { text: window.appContent.footer || "" },
     "footer-section",
   );
 
@@ -40,7 +44,7 @@ function initTableRenderer() {
   const downloadBtn = document.getElementById("download-json-btn");
   if (downloadBtn) {
     downloadBtn.addEventListener("click", () => {
-      const dataStr = JSON.stringify(appContent, null, 2);
+      const dataStr = JSON.stringify(window.appContent, null, 2);
       const blob = new Blob([dataStr], { type: "application/json" });
       const url = URL.createObjectURL(blob);
 

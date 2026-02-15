@@ -1,5 +1,5 @@
 // Global content variable
-let appContent = {};
+window.appContent = {};
 
 // Custom event to notify other scripts when data is loaded
 const contentReadyEvent = new Event("contentReady");
@@ -9,7 +9,7 @@ async function loadContent() {
   const stored = localStorage.getItem("siteContent");
   if (stored) {
     try {
-      appContent = JSON.parse(stored);
+      window.appContent = JSON.parse(stored);
       updateDOM();
       window.dispatchEvent(contentReadyEvent);
       return;
@@ -22,12 +22,14 @@ async function loadContent() {
   // 2. Fetch from JSON file (Default)
   try {
     const response = await fetch("content.json");
-    if (!response.ok) throw new Error("Failed to load content.json");
-    appContent = await response.json();
+    if (!response.ok)
+      throw new Error(`Failed to load content.json: ${response.status}`);
+    window.appContent = await response.json();
     updateDOM();
     window.dispatchEvent(contentReadyEvent);
   } catch (error) {
     console.error("Error loading content:", error);
+    alert("Error loading content. Check console for details.");
   }
 }
 
@@ -41,24 +43,24 @@ function updateDOM() {
   // 1. Populate Hero Section
   // We use optional chaining (?.) just in case a key is missing in the saved data
   document.querySelector(".hero-content h1").textContent =
-    appContent.hero.title;
+    window.appContent.hero?.title || "";
   document.querySelector(".hero-content p").textContent =
-    appContent.hero.subtitle;
+    window.appContent.hero?.subtitle || "";
   document.querySelector(".hero-content .btn-primary").textContent =
-    appContent.hero.ctaPrimary;
+    window.appContent.hero?.ctaPrimary || "";
   document.querySelector(".hero-content .btn-outline").textContent =
-    appContent.hero.ctaSecondary;
+    window.appContent.hero?.ctaSecondary || "";
 
   // 2. Populate Features Header
   document.querySelector(".section-header h2").textContent =
-    appContent.features.heading;
+    window.appContent.features?.heading || "";
   document.querySelector(".section-header p").textContent =
-    appContent.features.subheading;
+    window.appContent.features?.subheading || "";
 
   // 3. Generate Feature Cards Dynamically
   const featureGrid = document.querySelector(".feature-grid");
-  if (featureGrid && appContent.features.cards) {
-    featureGrid.innerHTML = appContent.features.cards
+  if (featureGrid && window.appContent.features?.cards) {
+    featureGrid.innerHTML = window.appContent.features.cards
       .map(
         (card) => `
         <div class="card">
@@ -77,7 +79,7 @@ function updateDOM() {
   }
 
   // 4. Populate Footer
-  document.querySelector("footer p").innerHTML = appContent.footer;
+  document.querySelector("footer p").innerHTML = window.appContent.footer || "";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
