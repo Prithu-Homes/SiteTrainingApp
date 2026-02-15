@@ -63,7 +63,8 @@ function initTableRenderer() {
   const downloadBtn = document.getElementById("download-json-btn");
   if (downloadBtn) {
     downloadBtn.addEventListener("click", () => {
-      const dataStr = JSON.stringify(window.appContent, null, 2);
+      const currentData = scrapeAllData();
+      const dataStr = JSON.stringify(currentData, null, 2);
       const blob = new Blob([dataStr], { type: "application/json" });
       const url = URL.createObjectURL(blob);
 
@@ -74,32 +75,6 @@ function initTableRenderer() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    });
-  }
-
-  // 8. Handle Save Changes
-  const saveBtn = document.getElementById("save-btn");
-  if (saveBtn) {
-    saveBtn.addEventListener("click", () => {
-      const newContent = scrapeAllData();
-
-      // Update global appContent so download uses latest data
-      window.appContent = newContent;
-
-      // Save to LocalStorage
-      localStorage.setItem("siteContent", JSON.stringify(newContent));
-      alert("Changes saved! Return to the Home page to see updates.");
-    });
-  }
-
-  // 9. Handle Reset
-  const resetBtn = document.getElementById("reset-btn");
-  if (resetBtn) {
-    resetBtn.addEventListener("click", () => {
-      if (confirm("Are you sure you want to reset all content to default?")) {
-        localStorage.removeItem("siteContent");
-        location.reload();
-      }
     });
   }
 

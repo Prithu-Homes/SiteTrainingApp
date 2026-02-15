@@ -1,88 +1,82 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Content Data View</title>
-    <link rel="stylesheet" href="style.css" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      body {
-        background-color: #fff;
-        color: var(--dark);
-      }
-      .data-section {
-        margin-bottom: 3rem;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      }
-      th,
-      td {
-        border: 1px solid #e0e0e0;
-        padding: 12px;
-        text-align: left;
-      }
-      th {
-        background-color: var(--primary);
-        color: white;
-        font-weight: 600;
-      }
-      tr:nth-child(even) {
-        background-color: #f8f9fa;
-      }
-      h2 {
-        border-bottom: 2px solid var(--primary);
-        padding-bottom: 0.5rem;
-        display: inline-block;
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Navigation Placeholder -->
-    <nav class="navbar" style="position: relative; margin-bottom: 2rem">
-      <div class="nav-container">
-        <a href="index.html" class="logo">Back to Home</a>
-      </div>
-    </nav>
 
-    <div class="container">
-      <h1>Static Content Data</h1>
-      <p>
-        This page displays the raw data configured in <code>content.js</code>.
-      </p>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Content Data View</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #fff;
+      color: var(--dark);
+    }
 
-      <div style="margin-bottom: 2rem; display: flex; gap: 1rem">
-        <button id="save-btn" class="btn btn-primary">Save Changes</button>
-        <button
-          id="reset-btn"
-          class="btn btn-outline"
-          style="border-color: var(--primary); color: var(--primary)"
-        >
-          Reset to Default
-        </button>
-        <button
-          id="download-json-btn"
-          class="btn btn-outline"
-          style="border-color: var(--dark); color: var(--dark)"
-        >
-          Download JSON
-        </button>
-      </div>
+    .data-section {
+      margin-bottom: 3rem;
+    }
 
-      <div id="tables-container">
-        <!-- Tables will be injected here by table-renderer.js -->
-      </div>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    th,
+    td {
+      border: 1px solid #e0e0e0;
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--primary);
+      color: white;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    h2 {
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 0.5rem;
+      display: inline-block;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navigation Placeholder -->
+  <nav class="navbar" style="position: relative; margin-bottom: 2rem">
+    <div class="nav-container">
+      <a href="index.html" class="logo">Back to Home</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>Static Content Data</h1>
+    <p>
+      This page displays the raw data configured in <code>content.js</code>.
+    </p>
+
+    <div style="margin-bottom: 2rem; display: flex; gap: 1rem">
+      <button id="download-json-btn" class="btn btn-primary">
+        Download JSON
+      </button>
     </div>
 
-    <!-- Scripts -->
-    <script src="content.js"></script>
-    <script src="table-renderer.js"></script>
-  </body>
+    <div id="tables-container">
+      <!-- Tables will be injected here by table-renderer.js -->
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="content.js"></script>
+  <script src="table-renderer.js"></script>
+</body>
+
 </html>
