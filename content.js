@@ -37,6 +37,9 @@ const appContent = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Guard clause: Only run if we are on the main page (checking for hero section)
+  if (!document.querySelector(".hero-content")) return;
+
   // 1. Populate Hero Section
   document.querySelector(".hero-content h1").textContent =
     appContent.hero.title;
