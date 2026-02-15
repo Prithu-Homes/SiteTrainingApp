@@ -100,7 +100,7 @@
     ]
   },
   "imageSequence": {
-    "overlayText": "Hello, How are You today",
+    "overlayText": "",
     "overlayOpacity": "0.5",
     "images": [
       { "src": "assets/images/Learning-1.jpg" },

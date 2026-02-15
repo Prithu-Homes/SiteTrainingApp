@@ -121,7 +121,8 @@ body {
 /* Hero */
 .hero {
     position: relative;
-    height: 100vh;
+    height: 82vh;
+    min-height: 560px;
     display: flex;
     align-items: center;
     justify-content: center;
