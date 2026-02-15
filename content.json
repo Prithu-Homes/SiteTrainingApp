@@ -34,11 +34,10 @@
     "generateVideoSasUrl": "https://sitetrainingappvideos-atgwa3cnhsfkdndw.centralindia-01.azurewebsites.net/api/GenerateVideoSas"
   },
   "hero": {
-    "title": "Learn -> Execute -> Grow -> Learn",
+    "title": "Learn ➡️ Execute ➡️ Grow ➡️ 💰💰💰 ",
     "subtitle": "I am Your Training Partner, from the comfort of your home, work, or anywhere you choose.",
     "ctaPrimary": "Start Free Trial",
     "ctaSecondary": "Explore Equipment",
-    "showCtas": false,
     "video": "assets/videos/hero-workout.mp4",
     "poster": "assets/images/hero-poster.jpg"
   },
