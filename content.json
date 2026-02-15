@@ -29,5 +29,17 @@
       }
     ]
   },
+  "imageSequence": {
+    "overlayText": "Hello, How are You today",
+    "overlayOpacity": "0.3",
+    "images": [
+      { "src": "assets/images/global.jpg" },
+      { "src": "assets/images/studio.jpg" },
+      { "src": "assets/images/yoga.jpg" },
+      { "src": "assets/images/global.jpg" },
+      { "src": "assets/images/studio.jpg" },
+      { "src": "assets/images/yoga.jpg" }
+    ]
+  },
   "footer": "&copy; 2023 Fitness Pro. All rights reserved."
 }

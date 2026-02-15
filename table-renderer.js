@@ -36,14 +36,30 @@ function initTableRenderer() {
     "cards-section",
   );
 
-  // 4. Render Footer
+  // 4. Render Image Sequence Settings (New)
+  const seqData = { ...(window.appContent.imageSequence || {}) };
+  delete seqData.images; // Separate array
+  createTableFromObject(
+    "Image Sequence Settings",
+    seqData,
+    "sequence-settings",
+  );
+
+  // 5. Render Image Sequence Images (New)
+  createTableFromArray(
+    "Image Sequence Images",
+    window.appContent.imageSequence?.images || [],
+    "sequence-images",
+  );
+
+  // 6. Render Footer
   createTableFromObject(
     "Footer",
     { text: window.appContent.footer || "" },
     "footer-section",
   );
 
-  // 5. Handle JSON Download
+  // 7. Handle JSON Download
   const downloadBtn = document.getElementById("download-json-btn");
   if (downloadBtn) {
     downloadBtn.addEventListener("click", () => {
@@ -61,7 +77,7 @@ function initTableRenderer() {
     });
   }
 
-  // 6. Handle Save Changes
+  // 8. Handle Save Changes
   const saveBtn = document.getElementById("save-btn");
   if (saveBtn) {
     saveBtn.addEventListener("click", () => {
@@ -76,7 +92,7 @@ function initTableRenderer() {
     });
   }
 
-  // 7. Handle Reset
+  // 9. Handle Reset
   const resetBtn = document.getElementById("reset-btn");
   if (resetBtn) {
     resetBtn.addEventListener("click", () => {
@@ -93,9 +109,11 @@ function initTableRenderer() {
     const content = {
       hero: scrapeObject("hero-section"),
       features: scrapeObject("features-section"),
+      imageSequence: scrapeObject("sequence-settings"),
       footer: scrapeObject("footer-section").text,
     };
     content.features.cards = scrapeArray("cards-section");
+    content.imageSequence.images = scrapeArray("sequence-images");
     return content;
   }
 

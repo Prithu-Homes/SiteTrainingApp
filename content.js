@@ -80,6 +80,9 @@ function updateDOM() {
 
   // 4. Populate Footer
   document.querySelector("footer p").innerHTML = window.appContent.footer || "";
+
+  // 5. Render Image Sequence
+  renderImageSequence();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -93,3 +96,64 @@ window.addEventListener("pageshow", (event) => {
     loadContent();
   }
 });
+
+/**
+ * Renders the scrolling image sequence section.
+ */
+function renderImageSequence() {
+  const data = window.appContent.imageSequence;
+  if (!data) return;
+
+  let container = document.getElementById("image-sequence-section");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "image-sequence-section";
+    // Insert before footer
+    const footer = document.querySelector("footer");
+    if (footer) {
+      footer.parentNode.insertBefore(container, footer);
+    } else {
+      document.body.appendChild(container);
+    }
+  }
+
+  // Inject CSS for the marquee effect
+  if (!document.getElementById("seq-styles")) {
+    const style = document.createElement("style");
+    style.id = "seq-styles";
+    style.innerHTML = `
+      #image-sequence-section { position: relative; width: 100%; height: 300px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #000; margin: 2rem 0; }
+      .seq-track { display: flex; position: absolute; left: 0; top: 0; height: 100%; animation: scrollRight 30s linear infinite; }
+      .seq-track img { height: 100%; width: auto; object-fit: cover; }
+      @keyframes scrollRight {
+        0% { transform: translateX(-50%); }
+        100% { transform: translateX(0); }
+      }
+      .seq-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+      .seq-text { color: white; font-size: 3rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); z-index: 20; text-align: center; padding: 0 1rem; }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Prepare images (duplicated for seamless loop)
+  const images = data.images || [];
+  if (images.length === 0) return;
+
+  // Create enough duplicates to fill screen and scroll smoothly
+  const imagesHtml = images
+    .map((img) => `<img src="${img.src}" alt="">`)
+    .join("");
+  const trackContent = imagesHtml + imagesHtml + imagesHtml + imagesHtml;
+
+  const opacity = data.overlayOpacity || "0.3";
+
+  // Render HTML
+  container.innerHTML = `
+    <div class="seq-track">
+      ${trackContent}
+    </div>
+    <div class="seq-overlay" style="background-color: rgba(0,0,0,${opacity})">
+      <h2 class="seq-text">${data.overlayText || ""}</h2>
+    </div>
+  `;
+}
