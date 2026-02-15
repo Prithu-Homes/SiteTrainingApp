@@ -4,7 +4,7 @@ const msalConfig = {
     clientId: "d9051dac-005c-4352-b9e3-58aaf47061c3", // Replace with your Azure AD Client ID
     authority:
       "https://login.microsoftonline.com/aa947143-f10f-46fc-a1e0-b2e5cba0bbaa",
-    redirectUri: window.location.origin,
+    redirectUri: "https://prithu-homes.github.io/SiteTrainingApp",
   },
   cache: {
     cacheLocation: "localStorage",
