@@ -43,11 +43,19 @@ body {
 }
 
 .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     font-size: 1.5rem;
     font-weight: 800;
     text-decoration: none;
     color: var(--dark);
     letter-spacing: -0.5px;
+}
+
+.logo img {
+    height: 40px;
+    width: auto;
 }
 
 .highlight { color: var(--primary); }
