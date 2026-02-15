@@ -67,6 +67,9 @@ function initTableRenderer() {
     saveBtn.addEventListener("click", () => {
       const newContent = scrapeAllData();
 
+      // Update global appContent so download uses latest data
+      window.appContent = newContent;
+
       // Save to LocalStorage
       localStorage.setItem("siteContent", JSON.stringify(newContent));
       alert("Changes saved! Return to the Home page to see updates.");
