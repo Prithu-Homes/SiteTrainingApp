@@ -1,7 +1,18 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Listen for the content to be ready (fetched or loaded from storage)
+  window.addEventListener("contentReady", initTableRenderer);
+
+  // If content is already loaded by the time this script runs
+  if (appContent && Object.keys(appContent).length > 0) {
+    initTableRenderer();
+  }
+});
+
+function initTableRenderer() {
   const container = document.getElementById("tables-container");
 
-  if (!container || typeof appContent === "undefined") return;
+  // Prevent double rendering
+  if (!container || container.innerHTML !== "") return;
 
   // 1. Render Hero Section Data
   createTableFromObject("Hero Section", appContent.hero, "hero-section");
@@ -47,14 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveBtn = document.getElementById("save-btn");
   if (saveBtn) {
     saveBtn.addEventListener("click", () => {
-      const newContent = {
-        hero: scrapeObject("hero-section"),
-        features: scrapeObject("features-section"),
-        footer: scrapeObject("footer-section").text,
-      };
-
-      // Add cards back to features
-      newContent.features.cards = scrapeArray("cards-section");
+      const newContent = scrapeAllData();
 
       // Save to LocalStorage
       localStorage.setItem("siteContent", JSON.stringify(newContent));
@@ -74,6 +78,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- Helper Functions for Scraping Data ---
+
+  function scrapeAllData() {
+    const content = {
+      hero: scrapeObject("hero-section"),
+      features: scrapeObject("features-section"),
+      footer: scrapeObject("footer-section").text,
+    };
+    content.features.cards = scrapeArray("cards-section");
+    return content;
+  }
 
   function scrapeObject(elementId) {
     const container = document.getElementById(elementId);
@@ -171,4 +185,4 @@ document.addEventListener("DOMContentLoaded", () => {
     section.innerHTML = html;
     container.appendChild(section);
   }
-});
+}

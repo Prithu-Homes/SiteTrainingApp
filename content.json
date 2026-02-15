@@ -1,0 +1,33 @@
+{
+  "hero": {
+    "title": "Interactive Personal Training",
+    "subtitle": "Experience global workouts from the comfort of your home.",
+    "ctaPrimary": "Start Free Trial",
+    "ctaSecondary": "Explore Equipment"
+  },
+  "features": {
+    "heading": "Train Anywhere",
+    "subheading": "Access thousands of workouts led by world-class trainers.",
+    "cards": [
+      {
+        "image": "assets/images/global.jpg",
+        "badge": "Global",
+        "title": "Global Workouts",
+        "description": "Run in London, cycle in the Alps, or row in Antarctica."
+      },
+      {
+        "image": "assets/images/studio.jpg",
+        "badge": "Studio",
+        "title": "Studio Classes",
+        "description": "High-energy studio sessions with motivating instructors."
+      },
+      {
+        "image": "assets/images/yoga.jpg",
+        "badge": "Wellness",
+        "title": "Yoga & Mindfulness",
+        "description": "Strengthen your body and mind with guided sessions."
+      }
+    ]
+  },
+  "footer": "&copy; 2023 Fitness Pro. All rights reserved."
+}

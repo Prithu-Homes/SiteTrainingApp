@@ -1,53 +1,33 @@
-/**
- * Static Content Configuration
- * Centralizes all text and data for the website.
- */
-const defaultAppContent = {
-  hero: {
-    title: "Interactive Personal Training",
-    subtitle: "Experience global workouts from the comfort of your home.",
-    ctaPrimary: "Start Free Trial",
-    ctaSecondary: "Explore Equipment",
-  },
-  features: {
-    heading: "Train Anywhere",
-    subheading: "Access thousands of workouts led by world-class trainers.",
-    cards: [
-      {
-        image: "assets/images/global.jpg",
-        badge: "Global",
-        title: "Global Workouts",
-        description: "Run in London, cycle in the Alps, or row in Antarctica.",
-      },
-      {
-        image: "assets/images/studio.jpg",
-        badge: "Studio",
-        title: "Studio Classes",
-        description: "High-energy studio sessions with motivating instructors.",
-      },
-      {
-        image: "assets/images/yoga.jpg",
-        badge: "Wellness",
-        title: "Yoga & Mindfulness",
-        description: "Strengthen your body and mind with guided sessions.",
-      },
-    ],
-  },
-  footer: "&copy; 2023 Fitness Pro. All rights reserved.",
-};
+// Global content variable
+let appContent = {};
 
-// Load content from LocalStorage if available, otherwise use default
-let appContent = defaultAppContent;
+// Custom event to notify other scripts when data is loaded
+const contentReadyEvent = new Event("contentReady");
 
-function loadContent() {
+async function loadContent() {
+  // 1. Try LocalStorage first (Fastest for returning users/edits)
   const stored = localStorage.getItem("siteContent");
   if (stored) {
     try {
       appContent = JSON.parse(stored);
+      updateDOM();
+      window.dispatchEvent(contentReadyEvent);
+      return;
     } catch (e) {
       console.error("Error parsing stored content:", e);
-      // Fallback to defaultAppContent is already set
+      localStorage.removeItem("siteContent");
     }
+  }
+
+  // 2. Fetch from JSON file (Default)
+  try {
+    const response = await fetch("content.json");
+    if (!response.ok) throw new Error("Failed to load content.json");
+    appContent = await response.json();
+    updateDOM();
+    window.dispatchEvent(contentReadyEvent);
+  } catch (error) {
+    console.error("Error loading content:", error);
   }
 }
 
@@ -100,13 +80,8 @@ function updateDOM() {
   document.querySelector("footer p").innerHTML = appContent.footer;
 }
 
-// Initial load for external scripts (like table-renderer.js)
-loadContent();
-
 document.addEventListener("DOMContentLoaded", () => {
-  // Re-load content to ensure we have the latest version on page load
   loadContent();
-  updateDOM();
 });
 
 // Handle BFCache (Back/Forward Cache) for browser navigation
@@ -114,6 +89,5 @@ window.addEventListener("pageshow", (event) => {
   // If the page is being served from the cache (e.g. back button)
   if (event.persisted) {
     loadContent();
-    updateDOM();
   }
 });
