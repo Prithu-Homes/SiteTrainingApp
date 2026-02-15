@@ -35,10 +35,7 @@
     "images": [
       { "src": "assets/images/Learning-1.jpg" },
       { "src": "assets/images/Execute-1.jpg" },
-      { "src": "assets/images/Grow-1.jpg" },
-      { "src": "assets/images/global.jpg" },
-      { "src": "assets/images/studio.jpg" },
-      { "src": "assets/images/yoga.jpg" }
+      { "src": "assets/images/Grow-1.jpg" }
     ]
   },
   "footer": "&copy; 2023 Fitness Pro. All rights reserved."
