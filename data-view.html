@@ -305,6 +305,15 @@
       border-top: 3px solid #7fb2ea;
     }
 
+    tr.video-start-row td {
+      border-top: 2px dashed #9fbfe6;
+    }
+
+    tr.video-start-row .key-cell {
+      font-weight: 800;
+      color: #0d3f73;
+    }
+
     tr.card-swatch-even td {
       background: #f8fbff;
     }
@@ -316,6 +325,38 @@
     tr.card-swatch-even:nth-child(even) td,
     tr.card-swatch-odd:nth-child(even) td {
       filter: saturate(0.985);
+    }
+
+    tr.card-group-header-row td {
+      background: linear-gradient(90deg, #e9f3ff 0%, #f4f9ff 100%);
+      border-top: 2px solid #6da6e5;
+      border-bottom: 1px solid #c7dbf3;
+      padding: 0.45rem 0.55rem;
+    }
+
+    .card-group-header-cell {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.65rem;
+    }
+
+    .card-group-toggle {
+      border: none;
+      background: transparent;
+      color: #0f3c6b;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-align: left;
+      padding: 0.2rem 0;
+    }
+
+    .card-group-meta {
+      color: #51739a;
+      font-size: 0.78rem;
+      font-weight: 700;
+      white-space: nowrap;
     }
 
     .key-cell {
