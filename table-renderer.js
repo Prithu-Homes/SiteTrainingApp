@@ -1,8 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Listen for the content to be ready (fetched or loaded from storage)
   window.addEventListener("contentReady", initTableRenderer);
-
-  // If content is already loaded by the time this script runs
   if (window.appContent && Object.keys(window.appContent).length > 0) {
     initTableRenderer();
   }
@@ -10,482 +7,850 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function initTableRenderer() {
   const container = document.getElementById("tables-container");
-  let featureCardsState = normalizeFeatureCardsData(
-    window.appContent.features?.cards || [],
-  );
+  if (!container || container.dataset.rendered === "true") return;
 
-  // Prevent double rendering (check if content is already rendered)
-  if (!container || container.querySelector(".data-section")) return;
+  const contentState = deepClone(window.appContent || {});
+  const defaultState = deepClone(contentState);
 
-  // Clear placeholder content (like comments/whitespace)
-  container.innerHTML = "";
-
-  // 1. Render Site Section
-  createTableFromObject("Site", window.appContent.site || {}, "site-section");
-
-  // 2. Render Branding Section
-  createTableFromObject(
-    "Branding",
-    window.appContent.branding || {},
-    "branding-section",
-  );
-
-  // 3. Render Navigation Links
-  createTableFromArray(
-    "Navigation Links",
-    window.appContent.navigation?.links || [],
-    "navigation-links-section",
-  );
-
-  // 4. Render Auth Labels
-  createTableFromObject("Auth", window.appContent.auth || {}, "auth-section");
-
-  // 5. Render MSAL Config
-  createTableFromObject("MSAL", window.appContent.msal || {}, "msal-section");
-
-  // 6. Render Hero Section Data
-  createTableFromObject(
-    "Hero Section",
-    window.appContent.hero || {},
-    "hero-section",
-  );
-
-  // 7. Render Features Section Data (excluding cards array)
-  const featuresData = { ...(window.appContent.features || {}) };
-  delete featuresData.cards; // Remove array to handle separately
-  createTableFromObject("Features Section", featuresData, "features-section");
-
-  // 8. Render Feature Cards (Array)
-  renderFeatureCardsEditor(
-    "Feature Cards",
-    featureCardsState,
-    "cards-section",
-  );
-
-  // 9. Render Image Sequence Settings
-  const seqData = { ...(window.appContent.imageSequence || {}) };
-  delete seqData.images; // Separate array
-  createTableFromObject(
-    "Image Sequence Settings",
-    seqData,
-    "sequence-settings",
-  );
-
-  // 10. Render Image Sequence Images
-  createTableFromArray(
-    "Image Sequence Images",
-    window.appContent.imageSequence?.images || [],
-    "sequence-images",
-  );
-
-  // 11. Render Footer
-  createTableFromObject(
-    "Footer",
-    { text: window.appContent.footer || "" },
-    "footer-section",
-  );
-
-  // 12. Handle JSON Download
+  const searchInput = document.getElementById("table-search");
+  const entryCount = document.getElementById("entry-count");
+  const filterStatus = document.getElementById("filter-status");
+  const jumpLinksContainer = document.getElementById("section-jump-links");
+  const expandAllBtn = document.getElementById("expand-all-btn");
+  const collapseAllBtn = document.getElementById("collapse-all-btn");
   const downloadBtn = document.getElementById("download-json-btn");
-  if (downloadBtn) {
-    downloadBtn.addEventListener("click", () => {
-      // Scrape data directly from the table inputs
-      const currentData = scrapeAllData();
-      const dataStr = JSON.stringify(currentData, null, 2);
-      const blob = new Blob([dataStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
 
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "content.json";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    });
-  }
+  const pages = buildPageModel(contentState, defaultState);
 
-  // --- Helper Functions for Scraping Data ---
+  container.innerHTML = "";
+  const allRenderedRows = [];
+  const sectionLinkItems = [];
 
-  function scrapeAllData() {
-    const content = {
-      site: scrapeObject("site-section"),
-      branding: scrapeObject("branding-section"),
-      navigation: { links: scrapeArray("navigation-links-section") },
-      auth: scrapeObject("auth-section"),
-      msal: scrapeObject("msal-section"),
-      hero: scrapeObject("hero-section"),
-      features: scrapeObject("features-section"),
-      imageSequence: scrapeObject("sequence-settings"),
-      footer: scrapeObject("footer-section").text,
-    };
-    content.features.cards = getFeatureCardsData();
-    content.imageSequence.images = scrapeArray("sequence-images");
-    return content;
-  }
+  pages.forEach((page, pageIndex) => {
+    const pageDetails = document.createElement("details");
+    pageDetails.className = "page-group";
+    pageDetails.dataset.page = page.id;
+    pageDetails.open = true;
 
-  function getFeatureCardsData() {
-    return featureCardsState.map((card) => ({
-      image: String(card.image || "").trim(),
-      alt: String(card.alt || "").trim(),
-      badge: String(card.badge || "").trim(),
-      title: String(card.title || "").trim(),
-      description: String(card.description || "").trim(),
-      ...(String(card.sectionId || "").trim()
-        ? { sectionId: String(card.sectionId || "").trim() }
-        : {}),
-      videos: (Array.isArray(card.videos) ? card.videos : []).map(
-        (video, index) => {
-          const parsedSequence = Number.parseInt(video.sequence, 10);
-          return {
-            sequence: Number.isFinite(parsedSequence)
-              ? parsedSequence
-              : index + 1,
-            name: String(video.name || "").trim(),
-            description: String(video.description || "").trim(),
-            url: String(video.url || "").trim(),
-          };
-        },
-      ),
-    }));
-  }
-
-  function scrapeObject(elementId) {
-    const container = document.getElementById(elementId);
-    if (!container) return {};
-    const rows = container.querySelectorAll("tbody tr");
-    const obj = {};
-    rows.forEach((row) => {
-      const key = row.cells[0].innerText.trim();
-      const value = row.cells[1].innerText.trim();
-      obj[key] = value;
-    });
-    return obj;
-  }
-
-  function scrapeArray(elementId) {
-    const container = document.getElementById(elementId);
-    if (!container) return [];
-    const headers = Array.from(container.querySelectorAll("thead th")).map(
-      (th) => th.dataset.key,
+    const totalRows = page.sections.reduce(
+      (sum, section) => sum + section.rows.length,
+      0,
     );
-    const rows = container.querySelectorAll("tbody tr");
-    return Array.from(rows).map((row) => {
-      const obj = {};
-      Array.from(row.cells).forEach((cell, index) => {
-        obj[headers[index]] = cell.innerText.trim();
-      });
-      return obj;
-    });
-  }
 
-  /**
-   * Helper to create a table from a simple Key-Value object
-   */
-  function createTableFromObject(title, dataObj, elementId) {
-    const section = document.createElement("div");
-    section.className = "data-section";
-    section.id = elementId;
-
-    let html = `<h2>${title}</h2>`;
-    html += `<table><thead><tr><th width="30%">Key</th><th>Value</th></tr></thead><tbody>`;
-
-    for (const [key, value] of Object.entries(dataObj)) {
-      html += `
-            <tr>
-                <td><strong>${key}</strong></td>
-                <td contenteditable="true" style="background-color: #fffde7;">${value}</td>
-            </tr>`;
-    }
-
-    html += `</tbody></table>`;
-    section.innerHTML = html;
-    container.appendChild(section);
-  }
-
-  /**
-   * Helper to create a table from an Array of Objects
-   */
-  function createTableFromArray(title, dataArray, elementId) {
-    if (!dataArray || dataArray.length === 0) return;
-
-    const section = document.createElement("div");
-    section.className = "data-section";
-    section.id = elementId;
-
-    // Get headers from the first object keys
-    const headers = Object.keys(dataArray[0]);
-
-    let html = `<h2>${title}</h2>`;
-    html += `<table><thead><tr>`;
-
-    // Create Headers
-    headers.forEach((header) => {
-      html += `<th data-key="${header}">${header.charAt(0).toUpperCase() + header.slice(1)}</th>`;
-    });
-    html += `</tr></thead><tbody>`;
-
-    // Create Rows
-    dataArray.forEach((item) => {
-      html += `<tr>`;
-      headers.forEach((header) => {
-        let cellValue = item[header];
-        // If it looks like an image path, make it a link or preview
-        if (
-          typeof cellValue === "string" &&
-          (cellValue.includes(".jpg") ||
-            cellValue.includes(".png") ||
-            cellValue.includes(".avif"))
-        ) {
-          cellValue = `<span style="color: #666; font-size: 0.9em;">${cellValue}</span>`;
-        }
-        html += `<td contenteditable="true" style="background-color: #fffde7;">${cellValue}</td>`;
-      });
-      html += `</tr>`;
-    });
-
-    html += `</tbody></table>`;
-    section.innerHTML = html;
-    container.appendChild(section);
-  }
-
-  function renderFeatureCardsEditor(title, cardsArray, elementId) {
-    const section = document.createElement("div");
-    section.className = "data-section";
-    section.id = elementId;
-
-    section.innerHTML = `
-      <h2>${title}</h2>
-      <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; margin-top:1rem;">
-        <label for="card-section-select"><strong>Section:</strong></label>
-        <select id="card-section-select" style="padding:0.35rem 0.5rem; min-width:220px;"></select>
-        <button type="button" id="add-card-section-btn" class="btn btn-primary" style="padding:0.4rem 0.8rem;">Add Section</button>
-        <button type="button" id="delete-card-section-btn" class="btn" style="padding:0.4rem 0.8rem; background:#c62828; color:#fff;">Delete Section</button>
-      </div>
-      <div id="card-section-editor" style="margin-top:1rem;"></div>
+    pageDetails.innerHTML = `
+      <summary>
+        <span>${pageIndex + 1}.</span>
+        <span>${escapeHtml(page.title)}</span>
+        <span class="summary-meta">${totalRows} items</span>
+      </summary>
+      <div class="page-sections"></div>
     `;
-    container.appendChild(section);
 
-    const sectionSelect = section.querySelector("#card-section-select");
-    const addSectionBtn = section.querySelector("#add-card-section-btn");
-    const deleteSectionBtn = section.querySelector("#delete-card-section-btn");
-    const editorContainer = section.querySelector("#card-section-editor");
+    const pageSectionsHost = pageDetails.querySelector(".page-sections");
 
-    function currentSectionIndex() {
-      const idx = Number.parseInt(sectionSelect.value, 10);
-      return Number.isInteger(idx) ? idx : -1;
-    }
+    page.sections.forEach((section, sectionIndex) => {
+      const sectionDetails = document.createElement("details");
+      sectionDetails.className = "section-group";
+      sectionDetails.id = `section-${slugify(`${page.id}-${section.id}`)}`;
+      sectionDetails.open = true;
 
-    function setCardField(index, field, value) {
-      if (!cardsArray[index]) return;
-      cardsArray[index][field] = value;
-    }
-
-    function renderSectionOptions(selectedIndex = 0) {
-      sectionSelect.innerHTML = "";
-      cardsArray.forEach((card, index) => {
-        const option = document.createElement("option");
-        option.value = String(index);
-        option.textContent = card.title?.trim()
-          ? `${index + 1}. ${card.title}`
-          : `${index + 1}. Untitled Section`;
-        sectionSelect.appendChild(option);
-      });
-
-      if (cardsArray.length === 0) {
-        sectionSelect.disabled = true;
-        deleteSectionBtn.disabled = true;
-      } else {
-        sectionSelect.disabled = false;
-        deleteSectionBtn.disabled = false;
-        const nextSelected = Math.max(
-          0,
-          Math.min(selectedIndex, cardsArray.length - 1),
-        );
-        sectionSelect.value = String(nextSelected);
-      }
-    }
-
-    function renderVideosEditor(card, cardIndex) {
-      const videos = Array.isArray(card.videos) ? card.videos : [];
-      const tableRows = videos
-        .map(
-          (video, videoIndex) => `
-          <tr data-video-index="${videoIndex}">
-            <td><input data-video-field="sequence" data-video-index="${videoIndex}" type="number" value="${escapeHtml(video.sequence)}" style="width:80px;" /></td>
-            <td><input data-video-field="name" data-video-index="${videoIndex}" value="${escapeHtml(video.name)}" style="width:100%;" /></td>
-            <td><input data-video-field="description" data-video-index="${videoIndex}" value="${escapeHtml(video.description)}" style="width:100%;" /></td>
-            <td><input data-video-field="url" data-video-index="${videoIndex}" value="${escapeHtml(video.url)}" style="width:100%;" /></td>
-            <td><button type="button" data-delete-video-index="${videoIndex}" class="btn" style="padding:0.35rem 0.65rem; background:#c62828; color:#fff;">Delete</button></td>
-          </tr>
-        `,
-        )
-        .join("");
-
-      return `
-        <div style="margin-top:1.25rem;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-            <h3 style="margin:0;">Videos</h3>
-            <button type="button" id="add-video-btn" class="btn btn-primary" style="padding:0.4rem 0.8rem;">Add Video</button>
-          </div>
-          ${
-            videos.length === 0
-              ? '<p style="margin:0.5rem 0 0; color:#666;">No videos in this section yet.</p>'
-              : `<table>
-                  <thead>
-                    <tr>
-                      <th style="width:90px;">Sequence</th>
-                      <th>Name</th>
-                      <th>Description</th>
-                      <th>URL</th>
-                      <th style="width:110px;">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>${tableRows}</tbody>
-                </table>`
-          }
+      sectionDetails.innerHTML = `
+        <summary>
+          <span class="summary-label">- ${escapeHtml(section.title)}</span>
+          <span class="summary-meta">${section.rows.length} items</span>
+        </summary>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 22%;">Key</th>
+                <th style="width: 35%;">Value</th>
+                <th style="width: 22%;">Group Path</th>
+                <th style="width: 13%;">Selector</th>
+                <th style="width: 8%;">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       `;
-    }
 
-    function renderSelectedSection() {
-      const index = currentSectionIndex();
-      if (index < 0 || !cardsArray[index]) {
-        editorContainer.innerHTML =
-          '<p style="margin-top:0.75rem; color:#666;">No sections yet. Click "Add Section" to create one.</p>';
-        return;
-      }
+      const tbody = sectionDetails.querySelector("tbody");
 
-      const card = cardsArray[index];
-      editorContainer.innerHTML = `
-        <div style="display:grid; gap:0.75rem; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));">
-          <label><strong>Title</strong><br/><input id="card-title" value="${escapeHtml(card.title)}" style="width:100%;" /></label>
-          <label><strong>Badge</strong><br/><input id="card-badge" value="${escapeHtml(card.badge)}" style="width:100%;" /></label>
-          <label><strong>Image</strong><br/><input id="card-image" value="${escapeHtml(card.image)}" style="width:100%;" /></label>
-          <label><strong>Alt</strong><br/><input id="card-alt" value="${escapeHtml(card.alt)}" style="width:100%;" /></label>
-          <label><strong>Section ID (optional)</strong><br/><input id="card-section-id" value="${escapeHtml(card.sectionId || "")}" style="width:100%;" /></label>
-        </div>
-        <label style="display:block; margin-top:0.75rem;"><strong>Description</strong><br/><textarea id="card-description" rows="3" style="width:100%;">${escapeHtml(card.description)}</textarea></label>
-        ${renderVideosEditor(card, index)}
-      `;
+      section.rows.forEach((row) => {
+        const tr = document.createElement("tr");
+        tr.dataset.search = `${row.keyLabel} ${row.groupPath} ${row.selector} ${row.getValueString()}`.toLowerCase();
 
-      editorContainer.querySelector("#card-title")?.addEventListener("input", (e) => {
-        setCardField(index, "title", e.target.value);
-        renderSectionOptions(index);
-      });
-      editorContainer.querySelector("#card-badge")?.addEventListener("input", (e) => {
-        setCardField(index, "badge", e.target.value);
-      });
-      editorContainer.querySelector("#card-image")?.addEventListener("input", (e) => {
-        setCardField(index, "image", e.target.value);
-      });
-      editorContainer.querySelector("#card-alt")?.addEventListener("input", (e) => {
-        setCardField(index, "alt", e.target.value);
-      });
-      editorContainer.querySelector("#card-section-id")?.addEventListener("input", (e) => {
-        setCardField(index, "sectionId", e.target.value);
-      });
-      editorContainer.querySelector("#card-description")?.addEventListener("input", (e) => {
-        setCardField(index, "description", e.target.value);
-      });
+        tr.innerHTML = `
+          <td class="key-cell">${escapeHtml(row.keyLabel)}</td>
+          <td>
+            <textarea class="value-input" rows="${recommendedRows(row.getValue())}" data-path="${escapeHtml(
+              row.statePath,
+            )}">${escapeHtml(row.getValueString())}</textarea>
+          </td>
+          <td class="path-cell">${escapeHtml(row.groupPath)}</td>
+          <td class="selector-cell">
+            <code>${escapeHtml(row.selector)}</code>
+            ${row.openHref ? `<a class="selector-link" href="${escapeHtml(row.openHref)}">Open in ${escapeHtml(
+              row.openLabel || "Page",
+            )}</a>` : ""}
+          </td>
+          <td>
+            <div class="action-cell">
+              <button type="button" class="mini-btn" data-copy-path="${escapeHtml(row.groupPath)}">Copy</button>
+              <button type="button" class="mini-btn" data-reset-path="${escapeHtml(row.statePath)}">Reset</button>
+            </div>
+          </td>
+        `;
 
-      editorContainer.querySelector("#add-video-btn")?.addEventListener("click", () => {
-        const videos = Array.isArray(cardsArray[index].videos)
-          ? cardsArray[index].videos
-          : [];
-        videos.push({
-          sequence: videos.length + 1,
-          name: "",
-          description: "",
-          url: "",
-        });
-        cardsArray[index].videos = videos;
-        renderSelectedSection();
-      });
-
-      editorContainer
-        .querySelectorAll("input[data-video-field]")
-        .forEach((input) => {
-          input.addEventListener("input", (e) => {
-            const videoIndex = Number.parseInt(
-              e.target.dataset.videoIndex || "-1",
-              10,
-            );
-            const field = e.target.dataset.videoField;
-            if (!Number.isInteger(videoIndex) || videoIndex < 0 || !field) return;
-            const videos = cardsArray[index].videos || [];
-            if (!videos[videoIndex]) return;
-            videos[videoIndex][field] = e.target.value;
-          });
+        const input = tr.querySelector("textarea");
+        input.addEventListener("input", () => {
+          const raw = input.value;
+          row.setValue(raw);
+          tr.dataset.search = `${row.keyLabel} ${row.groupPath} ${row.selector} ${raw}`.toLowerCase();
+          updateFilter();
         });
 
-      editorContainer
-        .querySelectorAll("button[data-delete-video-index]")
-        .forEach((button) => {
-          button.addEventListener("click", (e) => {
-            const videoIndex = Number.parseInt(
-              e.currentTarget.dataset.deleteVideoIndex || "-1",
-              10,
-            );
-            if (!Number.isInteger(videoIndex) || videoIndex < 0) return;
-            cardsArray[index].videos.splice(videoIndex, 1);
-            renderSelectedSection();
-          });
+        const copyBtn = tr.querySelector("[data-copy-path]");
+        copyBtn.addEventListener("click", async () => {
+          const text = copyBtn.dataset.copyPath || row.groupPath;
+          const ok = await copyToClipboard(text);
+          copyBtn.textContent = ok ? "Copied" : "Copy";
+          window.setTimeout(() => {
+            copyBtn.textContent = "Copy";
+          }, 1100);
         });
-    }
 
-    addSectionBtn.addEventListener("click", () => {
-      cardsArray.push({
-        image: "",
-        alt: "",
-        badge: "",
-        title: "New Section",
-        description: "",
-        videos: [],
+        const resetBtn = tr.querySelector("[data-reset-path]");
+        resetBtn.addEventListener("click", () => {
+          row.reset();
+          input.value = row.getValueString();
+          tr.dataset.search = `${row.keyLabel} ${row.groupPath} ${row.selector} ${input.value}`.toLowerCase();
+          updateFilter();
+        });
+
+        tbody.appendChild(tr);
+        allRenderedRows.push(tr);
       });
-      renderSectionOptions(cardsArray.length - 1);
-      renderSelectedSection();
+
+      sectionDetails.dataset.rowCount = String(section.rows.length);
+      pageSectionsHost.appendChild(sectionDetails);
+
+      sectionLinkItems.push({
+        id: sectionDetails.id,
+        label: section.title,
+        pageTitle: page.title,
+        indexLabel: `${pageIndex + 1}.${sectionIndex + 1}`,
+      });
     });
 
-    deleteSectionBtn.addEventListener("click", () => {
-      const index = currentSectionIndex();
-      if (index < 0 || !cardsArray[index]) return;
-      cardsArray.splice(index, 1);
-      renderSectionOptions(Math.max(0, index - 1));
-      renderSelectedSection();
-    });
+    container.appendChild(pageDetails);
+  });
 
-    sectionSelect.addEventListener("change", () => {
-      renderSelectedSection();
-    });
-
-    renderSectionOptions(0);
-    renderSelectedSection();
+  if (jumpLinksContainer) {
+    jumpLinksContainer.innerHTML = sectionLinkItems
+      .map(
+        (link) =>
+          `<a class="jump-link" href="#${escapeHtml(link.id)}" title="${escapeHtml(
+            `${link.pageTitle} > ${link.label}`,
+          )}">${escapeHtml(link.indexLabel)} ${escapeHtml(link.label)}</a>`,
+      )
+      .join("");
   }
 
-  function normalizeFeatureCardsData(cards) {
-    return (Array.isArray(cards) ? cards : []).map((card) => ({
-      image: String(card.image || ""),
-      alt: String(card.alt || ""),
-      badge: String(card.badge || ""),
-      title: String(card.title || ""),
-      description: String(card.description || ""),
-      sectionId: String(card.sectionId || ""),
-      videos: (Array.isArray(card.videos) ? card.videos : []).map((video) => ({
-        sequence: String(video.sequence ?? ""),
-        name: String(video.name || ""),
-        description: String(video.description || ""),
-        url: String(video.url || ""),
-      })),
+  container.dataset.rendered = "true";
+
+  function updateFilter() {
+    const query = String(searchInput?.value || "")
+      .trim()
+      .toLowerCase();
+
+    let visibleRows = 0;
+    allRenderedRows.forEach((tr) => {
+      const isVisible = !query || tr.dataset.search.includes(query);
+      tr.classList.toggle("hidden-row", !isVisible);
+      if (isVisible) visibleRows += 1;
+    });
+
+    container.querySelectorAll(".section-group").forEach((sectionDetails) => {
+      const rows = Array.from(sectionDetails.querySelectorAll("tbody tr"));
+      const visibleInSection = rows.filter(
+        (row) => !row.classList.contains("hidden-row"),
+      ).length;
+      sectionDetails.style.display = visibleInSection > 0 ? "" : "none";
+      const meta = sectionDetails.querySelector(".summary-meta");
+      if (meta) {
+        const total = Number.parseInt(sectionDetails.dataset.rowCount || "0", 10);
+        meta.textContent = query
+          ? `${visibleInSection}/${total} items`
+          : `${total} items`;
+      }
+    });
+
+    container.querySelectorAll(".page-group").forEach((pageDetails) => {
+      const visibleSections = Array.from(
+        pageDetails.querySelectorAll(".section-group"),
+      ).filter((node) => node.style.display !== "none").length;
+      pageDetails.style.display = visibleSections > 0 ? "" : "none";
+    });
+
+    if (entryCount) {
+      entryCount.textContent = `${visibleRows} content entries`;
+    }
+    if (filterStatus) {
+      filterStatus.textContent = query
+        ? `Filtered by "${query}" (${visibleRows} matches)`
+        : "Showing all entries";
+    }
+  }
+
+  searchInput?.addEventListener("input", updateFilter);
+
+  expandAllBtn?.addEventListener("click", () => {
+    container
+      .querySelectorAll(".page-group, .section-group")
+      .forEach((node) => (node.open = true));
+  });
+
+  collapseAllBtn?.addEventListener("click", () => {
+    container
+      .querySelectorAll(".section-group")
+      .forEach((node) => (node.open = false));
+  });
+
+  downloadBtn?.addEventListener("click", () => {
+    const dataStr = JSON.stringify(contentState, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "content.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  updateFilter();
+}
+
+function buildPageModel(state, defaults) {
+  const pagesById = new Map();
+  const navigationCandidates = deriveNavigationCandidates(state.navigation?.links || []);
+
+  const ensurePage = (id, title, order, openHref = "") => {
+    if (!pagesById.has(id)) {
+      pagesById.set(id, {
+        id,
+        title,
+        order,
+        openHref,
+        openLabel: defaultOpenLabel(title, openHref),
+        sections: [],
+      });
+      return pagesById.get(id);
+    }
+    const page = pagesById.get(id);
+    page.order = Math.min(page.order, order);
+    if (!page.openHref && openHref) page.openHref = openHref;
+    return page;
+  };
+
+  Object.entries(state || {}).forEach(([topKey, topValue], index) => {
+    const placement = resolvePagePlacement(topKey, navigationCandidates, index);
+    const page = ensurePage(
+      placement.id,
+      placement.title,
+      placement.order,
+      placement.openHref,
+    );
+    if (placement.openLabel) page.openLabel = placement.openLabel;
+    const sections = buildSectionsForTopKey({
+      topKey,
+      topValue,
+      pageTitle: page.title,
+      openHref: placement.openHref || page.openHref || "",
+      openLabel: placement.openLabel || page.openLabel || "",
+      state,
+      defaults,
+    });
+    sections.forEach((section) => {
+      if (section.rows.length) page.sections.push(section);
+    });
+  });
+
+  const pages = Array.from(pagesById.values())
+    .filter((page) => page.sections.length > 0)
+    .sort((a, b) => a.order - b.order)
+    .map((page) => ({
+      id: page.id,
+      title: page.title,
+      openHref: page.openHref || "",
+      openLabel: page.openLabel || "",
+      sections: page.sections,
     }));
+
+  return pages;
+}
+
+function buildSectionsForTopKey({
+  topKey,
+  topValue,
+  pageTitle,
+  openHref,
+  openLabel,
+  state,
+  defaults,
+}) {
+  if (topKey === "features" && topValue && typeof topValue === "object") {
+    return [
+      {
+        id: "features-main",
+        title: "Features Section",
+        rows: buildObjectRows({
+          state,
+          defaults,
+          path: ["features"],
+          pageTitle,
+          sectionTitle: "Features Section",
+          openHref,
+          openLabel,
+          skipKeys: ["cards"],
+        }),
+      },
+      {
+        id: "features-cards",
+        title: "Feature Cards",
+        rows: buildFeatureCardRows({
+          state,
+          defaults,
+          pageTitle,
+          sectionTitle: "Feature Cards",
+          openHref,
+          openLabel,
+        }),
+      },
+    ];
   }
 
-  function escapeHtml(value) {
-    return String(value || "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#39;");
+  if (topKey === "imageSequence" && topValue && typeof topValue === "object") {
+    return [
+      {
+        id: "image-sequence-settings",
+        title: "Image Sequence Settings",
+        rows: buildObjectRows({
+          state,
+          defaults,
+          path: ["imageSequence"],
+          pageTitle,
+          sectionTitle: "Image Sequence Settings",
+          openHref,
+          openLabel,
+          skipKeys: ["images"],
+        }),
+      },
+      {
+        id: "image-sequence-images",
+        title: "Image Sequence Images",
+        rows: buildArrayRows({
+          state,
+          defaults,
+          path: ["imageSequence", "images"],
+          pageTitle,
+          sectionTitle: "Image Sequence Images",
+          itemPrefix: "Image",
+          openHref,
+          openLabel,
+        }),
+      },
+    ];
   }
+
+  if (topKey === "navigation" && topValue && typeof topValue === "object") {
+    return [
+      {
+        id: "navigation-main",
+        title: "Navigation",
+        rows: buildObjectRows({
+          state,
+          defaults,
+          path: ["navigation"],
+          pageTitle,
+          sectionTitle: "Navigation",
+          openHref,
+          openLabel,
+          skipKeys: ["links"],
+        }),
+      },
+      {
+        id: "navigation-links",
+        title: "Navigation Links",
+        rows: buildArrayRows({
+          state,
+          defaults,
+          path: ["navigation", "links"],
+          pageTitle,
+          sectionTitle: "Navigation Links",
+          itemPrefix: "Link",
+          openHref,
+          openLabel,
+        }),
+      },
+    ];
+  }
+
+  if (topValue && typeof topValue === "object" && !Array.isArray(topValue)) {
+    const sectionTitle = titleCase(topKey);
+    return [
+      {
+        id: slugify(topKey),
+        title: sectionTitle,
+        rows: buildObjectRows({
+          state,
+          defaults,
+          path: [topKey],
+          pageTitle,
+          sectionTitle,
+          openHref,
+          openLabel,
+        }),
+      },
+    ];
+  }
+
+  if (Array.isArray(topValue)) {
+    const sectionTitle = titleCase(topKey);
+    return [
+      {
+        id: slugify(topKey),
+        title: sectionTitle,
+        rows: buildArrayRows({
+          state,
+          defaults,
+          path: [topKey],
+          pageTitle,
+          sectionTitle,
+          itemPrefix: "Item",
+          openHref,
+          openLabel,
+        }),
+      },
+    ];
+  }
+
+  return [
+    {
+      id: slugify(topKey),
+      title: titleCase(topKey),
+      rows: [
+        createLeafRow({
+          state,
+          defaults,
+          pageTitle,
+          sectionTitle: titleCase(topKey),
+          keyLabel: "value",
+          path: [topKey],
+          openHref,
+          openLabel,
+        }),
+      ],
+    },
+  ];
+}
+
+function buildObjectRows({
+  state,
+  defaults,
+  path,
+  pageTitle,
+  sectionTitle,
+  openHref,
+  openLabel,
+  skipKeys = [],
+}) {
+  const obj = getValueByPath(state, path) || {};
+  if (typeof obj !== "object" || Array.isArray(obj)) return [];
+
+  return Object.keys(obj)
+    .filter((key) => !skipKeys.includes(key))
+    .map((key) => {
+      const keyPath = [...path, key];
+      return createLeafRow({
+        state,
+        defaults,
+        pageTitle,
+        sectionTitle,
+        keyLabel: key,
+        path: keyPath,
+        openHref,
+        openLabel,
+      });
+    });
+}
+
+function buildArrayRows({
+  state,
+  defaults,
+  path,
+  pageTitle,
+  sectionTitle,
+  itemPrefix,
+  openHref,
+  openLabel,
+}) {
+  const arr = getValueByPath(state, path);
+  if (!Array.isArray(arr)) return [];
+
+  const rows = [];
+
+  arr.forEach((item, index) => {
+    if (item && typeof item === "object" && !Array.isArray(item)) {
+      Object.keys(item).forEach((key) => {
+        rows.push(
+          createLeafRow({
+            state,
+            defaults,
+            pageTitle,
+            sectionTitle,
+            keyLabel: `${itemPrefix} ${index + 1}.${key}`,
+            path: [...path, index, key],
+            customGroupPath: `${pageTitle} > ${sectionTitle} > ${itemPrefix} ${index + 1} > ${key}`,
+            openHref,
+            openLabel,
+          }),
+        );
+      });
+      return;
+    }
+
+    rows.push(
+      createLeafRow({
+        state,
+        defaults,
+        pageTitle,
+        sectionTitle,
+        keyLabel: `${itemPrefix} ${index + 1}`,
+        path: [...path, index],
+        customGroupPath: `${pageTitle} > ${sectionTitle} > ${itemPrefix} ${index + 1}`,
+        openHref,
+        openLabel,
+      }),
+    );
+  });
+
+  return rows;
+}
+
+function buildFeatureCardRows({
+  state,
+  defaults,
+  pageTitle,
+  sectionTitle,
+  openHref,
+  openLabel,
+}) {
+  const cards = getValueByPath(state, ["features", "cards"]);
+  if (!Array.isArray(cards)) return [];
+
+  const rows = [];
+  const cardFields = ["title", "badge", "image", "alt", "description", "sectionId"];
+
+  cards.forEach((card, cardIndex) => {
+    cardFields.forEach((field) => {
+      if (!(field in (card || {}))) return;
+      rows.push(
+        createLeafRow({
+          state,
+          defaults,
+          pageTitle,
+          sectionTitle,
+          keyLabel: `Card ${cardIndex + 1}.${field}`,
+          path: ["features", "cards", cardIndex, field],
+          customGroupPath: `${pageTitle} > ${sectionTitle} > Card ${cardIndex + 1} > ${field}`,
+          openHref,
+          openLabel,
+        }),
+      );
+    });
+
+    const videos = Array.isArray(card?.videos) ? card.videos : [];
+    videos.forEach((video, videoIndex) => {
+      ["sequence", "name", "description", "url"].forEach((field) => {
+        if (!(field in (video || {}))) return;
+        rows.push(
+          createLeafRow({
+            state,
+            defaults,
+            pageTitle,
+            sectionTitle,
+            keyLabel: `Card ${cardIndex + 1}.Video ${videoIndex + 1}.${field}`,
+            path: ["features", "cards", cardIndex, "videos", videoIndex, field],
+            customGroupPath: `${pageTitle} > ${sectionTitle} > Card ${cardIndex + 1} > Video ${videoIndex + 1} > ${field}`,
+            openHref,
+            openLabel,
+          }),
+        );
+      });
+    });
+  });
+
+  return rows;
+}
+
+function createLeafRow({
+  state,
+  defaults,
+  pageTitle,
+  sectionTitle,
+  keyLabel,
+  path,
+  customGroupPath = "",
+  openHref = "",
+  openLabel = "",
+}) {
+  const defaultValue = deepClone(getValueByPath(defaults, path));
+  const statePath = pathToText(path);
+  const selector = `#${slugify(path.join("-"))}`;
+
+  return {
+    keyLabel,
+    selector,
+    statePath,
+    groupPath: customGroupPath || `${pageTitle} > ${sectionTitle} > ${keyLabel}`,
+    openHref,
+    openLabel,
+    getValue: () => getValueByPath(state, path),
+    getValueString: () => stringifyValue(getValueByPath(state, path)),
+    setValue: (raw) => {
+      const casted = castValue(raw, defaultValue);
+      setValueByPath(state, path, casted);
+    },
+    reset: () => {
+      setValueByPath(state, path, deepClone(defaultValue));
+    },
+  };
+}
+
+function deepClone(value) {
+  if (typeof structuredClone === "function") {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
+function pathToText(path) {
+  let out = "";
+  path.forEach((part) => {
+    if (typeof part === "number") {
+      out += `[${part}]`;
+      return;
+    }
+    out += out ? `.${part}` : String(part);
+  });
+  return out;
+}
+
+function stringifyValue(value) {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "object") {
+    return JSON.stringify(value);
+  }
+  return String(value);
+}
+
+function castValue(raw, reference) {
+  const text = String(raw);
+  if (typeof reference === "boolean") {
+    const normalized = text.trim().toLowerCase();
+    return normalized === "true" || normalized === "1" || normalized === "yes";
+  }
+  if (typeof reference === "number") {
+    const next = Number.parseFloat(text);
+    return Number.isFinite(next) ? next : reference;
+  }
+  return text;
+}
+
+function getValueByPath(root, path) {
+  return path.reduce((acc, part) => (acc == null ? undefined : acc[part]), root);
+}
+
+function setValueByPath(root, path, value) {
+  if (!path.length) return;
+  let current = root;
+  for (let i = 0; i < path.length - 1; i += 1) {
+    current = current[path[i]];
+    if (current == null) return;
+  }
+  current[path[path.length - 1]] = value;
+}
+
+function titleCase(value) {
+  return String(value || "")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replaceAll("-", " ")
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function slugify(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "item";
+}
+
+function slugFromHref(href) {
+  const value = String(href || "").trim();
+  if (!value) return "";
+  if (value.startsWith("#")) {
+    return slugify(value.slice(1));
+  }
+  const noQuery = value.split("?")[0].split("#")[0];
+  const file = noQuery.split("/").pop() || "";
+  return slugify(file.replace(/\.[a-z0-9]+$/i, ""));
+}
+
+function deriveNavigationCandidates(links) {
+  return (Array.isArray(links) ? links : [])
+    .map((link) => {
+      const label = String(link?.label || "").trim();
+      const href = String(link?.href || "").trim();
+      const hrefSlug = slugFromHref(href);
+      const labelSlug = slugify(label);
+      const id = hrefSlug || labelSlug;
+      if (!id || id === "data-view" || id === "data-view-html") return null;
+      const openHref = href.startsWith("#") ? "index.html" : href;
+      return {
+        id,
+        title: titleCase(label || id),
+        openHref,
+        openLabel: titleCase(label || id),
+        terms: [normalizeToken(id), normalizeToken(labelSlug), normalizeToken(label)],
+      };
+    })
+    .filter(Boolean);
+}
+
+function normalizeToken(value) {
+  return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function resolvePagePlacement(topKey, navigationCandidates, keyOrder) {
+  const globalKeys = new Set([
+    "site",
+    "branding",
+    "navigation",
+    "auth",
+    "msal",
+    "api",
+  ]);
+  const homeKeys = new Set(["hero", "features", "imageSequence", "footer"]);
+  const keyNorm = normalizeToken(topKey);
+  const baseNorm = keyNorm.replace(/page$/, "");
+
+  if (globalKeys.has(topKey)) {
+    return {
+      id: "global-settings",
+      title: "Global Settings",
+      order: 0,
+      openHref: "",
+      openLabel: "",
+    };
+  }
+
+  if (homeKeys.has(topKey)) {
+    return {
+      id: "home-page",
+      title: "Home Page",
+      order: 1,
+      openHref: "index.html",
+      openLabel: "Home",
+    };
+  }
+
+  if (/page$/i.test(topKey)) {
+    return {
+      id: slugify(topKey),
+      title: titleCase(topKey),
+      order: 10 + keyOrder,
+      openHref: `${slugify(topKey.replace(/page$/i, "")) || "index"}.html`,
+      openLabel: titleCase(topKey.replace(/page$/i, "")) || "Page",
+    };
+  }
+
+  for (const candidate of navigationCandidates) {
+    const matched = candidate.terms.some((term) => {
+      if (!term || term.length < 3) return false;
+      return (
+        keyNorm.includes(term) ||
+        term.includes(keyNorm) ||
+        baseNorm.includes(term) ||
+        term.includes(baseNorm)
+      );
+    });
+
+    if (matched) {
+      return {
+        id: `page-${candidate.id}`,
+        title: candidate.title,
+        order: 20 + keyOrder,
+        openHref: candidate.openHref,
+        openLabel: candidate.openLabel,
+      };
+    }
+  }
+
+  return {
+    id: "content-modules",
+    title: "Content Modules",
+    order: 99,
+    openHref: "",
+    openLabel: "",
+  };
+}
+
+function defaultOpenLabel(title, openHref) {
+  if (!openHref) return "";
+  if (String(openHref).toLowerCase() === "index.html") return "Home";
+  return titleCase(title || "Page");
+}
+
+function recommendedRows(value) {
+  const text = stringifyValue(value);
+  const lines = text.split(/\r\n|\r|\n/).length;
+  return Math.max(1, Math.min(5, lines));
+}
+
+async function copyToClipboard(text) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (err) {
+    console.warn("Clipboard API failed, using fallback.", err);
+  }
+
+  try {
+    const temp = document.createElement("textarea");
+    temp.value = text;
+    document.body.appendChild(temp);
+    temp.select();
+    document.execCommand("copy");
+    document.body.removeChild(temp);
+    return true;
+  } catch (err) {
+    console.error("Fallback clipboard copy failed.", err);
+    return false;
+  }
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
