@@ -21,6 +21,11 @@ function initTableRenderer() {
   const downloadBtn = document.getElementById("download-json-btn");
 
   const pages = buildPageModel(contentState, defaultState);
+  const refreshRenderer = () => {
+    window.appContent = deepClone(contentState);
+    container.removeAttribute("data-rendered");
+    initTableRenderer();
+  };
 
   container.innerHTML = "";
   const allRenderedRows = [];
@@ -54,11 +59,25 @@ function initTableRenderer() {
       sectionDetails.id = `section-${slugify(`${page.id}-${section.id}`)}`;
       sectionDetails.open = true;
 
+      const trainingToolsHtml = section.type === "training-cards"
+        ? `
+          <div class="training-tools">
+            <label class="training-tools-label" for="title-filter-${escapeHtml(section.id)}">Filter by Title</label>
+            <select id="title-filter-${escapeHtml(section.id)}" class="training-tools-select" data-title-filter>
+              <option value="__all__">All Titles</option>
+            </select>
+            <input class="training-tools-input" type="text" placeholder="New title section..." data-title-input />
+            <button type="button" class="mini-btn training-tools-add" data-add-title-section>Add Title Section</button>
+          </div>
+        `
+        : "";
+
       sectionDetails.innerHTML = `
         <summary>
           <span class="summary-label">- ${escapeHtml(section.title)}</span>
           <span class="summary-meta">${section.rows.length} items</span>
         </summary>
+        ${trainingToolsHtml}
         <div class="table-scroll">
           <table>
             <thead>
@@ -76,9 +95,19 @@ function initTableRenderer() {
       `;
 
       const tbody = sectionDetails.querySelector("tbody");
+      let previousCardIndex = -1;
 
       section.rows.forEach((row) => {
         const tr = document.createElement("tr");
+        const cardIndex = extractCardIndex(row.statePath);
+        if (cardIndex >= 0) {
+          tr.dataset.cardIndex = String(cardIndex);
+          tr.classList.add(cardIndex % 2 === 0 ? "card-swatch-even" : "card-swatch-odd");
+          if (cardIndex !== previousCardIndex) {
+            tr.classList.add("card-start-row");
+            previousCardIndex = cardIndex;
+          }
+        }
         tr.dataset.search = `${row.keyLabel} ${row.groupPath} ${row.selector} ${row.getValueString()}`.toLowerCase();
 
         tr.innerHTML = `
@@ -108,6 +137,9 @@ function initTableRenderer() {
           const raw = input.value;
           row.setValue(raw);
           tr.dataset.search = `${row.keyLabel} ${row.groupPath} ${row.selector} ${raw}`.toLowerCase();
+          if (row.statePath.endsWith(".title")) {
+            rebuildTrainingTitleOptions(sectionDetails, contentState);
+          }
           updateFilter();
         });
 
@@ -134,6 +166,9 @@ function initTableRenderer() {
       });
 
       sectionDetails.dataset.rowCount = String(section.rows.length);
+      if (section.type === "training-cards") {
+        wireTrainingSectionTools(sectionDetails, contentState, defaultState, refreshRenderer);
+      }
       pageSectionsHost.appendChild(sectionDetails);
 
       sectionLinkItems.push({
@@ -168,8 +203,13 @@ function initTableRenderer() {
     let visibleRows = 0;
     allRenderedRows.forEach((tr) => {
       const isVisible = !query || tr.dataset.search.includes(query);
-      tr.classList.toggle("hidden-row", !isVisible);
-      if (isVisible) visibleRows += 1;
+      tr.classList.toggle("query-hidden", !isVisible);
+      syncRowVisibility(tr);
+      if (!tr.classList.contains("hidden-row")) visibleRows += 1;
+    });
+
+    container.querySelectorAll(".section-group[data-title-filter-value]").forEach((sectionDetails) => {
+      applyTrainingTitleFilter(sectionDetails);
     });
 
     container.querySelectorAll(".section-group").forEach((sectionDetails) => {
@@ -300,6 +340,7 @@ function buildPageModel(state, defaults) {
       id: "training-videos-content",
       title: "Feature Cards & Videos",
       rows: trainingVideosRows,
+      type: "training-cards",
     });
   }
 
@@ -315,6 +356,114 @@ function buildPageModel(state, defaults) {
     }));
 
   return pages;
+}
+
+function wireTrainingSectionTools(sectionDetails, state, defaults, refreshRenderer) {
+  rebuildTrainingTitleOptions(sectionDetails, state);
+  sectionDetails.dataset.titleFilterValue = "__all__";
+
+  const filterSelect = sectionDetails.querySelector("[data-title-filter]");
+  const addButton = sectionDetails.querySelector("[data-add-title-section]");
+  const titleInput = sectionDetails.querySelector("[data-title-input]");
+
+  filterSelect?.addEventListener("change", () => {
+    sectionDetails.dataset.titleFilterValue = filterSelect.value || "__all__";
+    applyTrainingTitleFilter(sectionDetails);
+  });
+
+  addButton?.addEventListener("click", () => {
+    const selectedText =
+      filterSelect && filterSelect.selectedIndex >= 0
+        ? filterSelect.options[filterSelect.selectedIndex].textContent || ""
+        : "";
+    const newTitle = String(titleInput?.value || "").trim()
+      || (filterSelect?.value && filterSelect.value !== "__all__"
+        ? `${selectedText} Copy`
+        : "");
+    const finalTitle = newTitle || `New Title ${((state.features?.cards || []).length || 0) + 1}`;
+
+    if (!state.features || typeof state.features !== "object") {
+      state.features = {};
+    }
+    if (!Array.isArray(state.features.cards)) {
+      state.features.cards = [];
+    }
+    if (!defaults.features || typeof defaults.features !== "object") {
+      defaults.features = {};
+    }
+    if (!Array.isArray(defaults.features.cards)) {
+      defaults.features.cards = [];
+    }
+
+    const newCard = {
+      title: finalTitle,
+      badge: finalTitle,
+      image: "",
+      alt: "",
+      description: "",
+      sectionId: "",
+      videos: [],
+    };
+    state.features.cards.push(deepClone(newCard));
+    defaults.features.cards.push(deepClone(newCard));
+    if (titleInput) titleInput.value = "";
+    refreshRenderer();
+  });
+}
+
+function rebuildTrainingTitleOptions(sectionDetails, state) {
+  const filterSelect = sectionDetails.querySelector("[data-title-filter]");
+  if (!filterSelect) return;
+
+  const previousValue = sectionDetails.dataset.titleFilterValue || "__all__";
+  const cards = Array.isArray(state.features?.cards) ? state.features.cards : [];
+
+  filterSelect.innerHTML = '<option value="__all__">All Titles</option>';
+  cards.forEach((card, index) => {
+    const title = String(card?.title || "").trim() || `Untitled ${index + 1}`;
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = title;
+    filterSelect.appendChild(option);
+  });
+
+  const canReuseValue =
+    previousValue === "__all__" ||
+    (Number.isInteger(Number.parseInt(previousValue, 10)) &&
+      Number.parseInt(previousValue, 10) >= 0 &&
+      Number.parseInt(previousValue, 10) < cards.length);
+  const resolvedValue = canReuseValue ? previousValue : "__all__";
+  sectionDetails.dataset.titleFilterValue = resolvedValue;
+  filterSelect.value = resolvedValue;
+  applyTrainingTitleFilter(sectionDetails);
+}
+
+function applyTrainingTitleFilter(sectionDetails) {
+  const selected = sectionDetails.dataset.titleFilterValue || "__all__";
+  sectionDetails.querySelectorAll("tbody tr").forEach((tr) => {
+    if (selected === "__all__") {
+      tr.classList.remove("title-hidden");
+      syncRowVisibility(tr);
+      return;
+    }
+    const cardIndex = tr.dataset.cardIndex || "";
+    tr.classList.toggle("title-hidden", cardIndex !== selected);
+    syncRowVisibility(tr);
+  });
+}
+
+function syncRowVisibility(tr) {
+  const hidden =
+    tr.classList.contains("query-hidden") ||
+    tr.classList.contains("title-hidden");
+  tr.classList.toggle("hidden-row", hidden);
+}
+
+function extractCardIndex(statePath) {
+  const match = String(statePath || "").match(/^features\.cards\[(\d+)\]/);
+  if (!match) return -1;
+  const value = Number.parseInt(match[1], 10);
+  return Number.isInteger(value) ? value : -1;
 }
 
 function buildSectionsForTopKey({

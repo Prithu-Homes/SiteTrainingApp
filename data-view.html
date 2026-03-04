@@ -232,6 +232,47 @@
       overflow: auto;
     }
 
+    .training-tools {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.7rem 0.9rem;
+      border-bottom: 1px solid var(--dv-border);
+      background: linear-gradient(90deg, #f8fbff 0%, #eef5ff 100%);
+    }
+
+    .training-tools-label {
+      font-size: 0.83rem;
+      font-weight: 800;
+      color: #214c7a;
+      margin-right: 0.1rem;
+    }
+
+    .training-tools-select,
+    .training-tools-input {
+      border: 1px solid #c2d5ed;
+      border-radius: 8px;
+      padding: 0.35rem 0.5rem;
+      background: #fff;
+      color: #163d65;
+      font-size: 0.84rem;
+      min-height: 2rem;
+    }
+
+    .training-tools-select {
+      min-width: 190px;
+    }
+
+    .training-tools-input {
+      min-width: 220px;
+    }
+
+    .training-tools-add {
+      min-height: 2rem;
+      padding: 0.25rem 0.6rem;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -258,6 +299,23 @@
 
     tbody tr:nth-child(even) td {
       background: #fbfdff;
+    }
+
+    tr.card-start-row td {
+      border-top: 3px solid #7fb2ea;
+    }
+
+    tr.card-swatch-even td {
+      background: #f8fbff;
+    }
+
+    tr.card-swatch-odd td {
+      background: #fefbf5;
+    }
+
+    tr.card-swatch-even:nth-child(even) td,
+    tr.card-swatch-odd:nth-child(even) td {
+      filter: saturate(0.985);
     }
 
     .key-cell {
@@ -369,6 +427,11 @@
       }
 
       #table-search {
+        min-width: 100%;
+      }
+
+      .training-tools-select,
+      .training-tools-input {
         min-width: 100%;
       }
     }
