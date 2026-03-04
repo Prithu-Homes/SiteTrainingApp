@@ -279,6 +279,30 @@ function buildPageModel(state, defaults) {
     });
   });
 
+  // trainingVideos.html is driven by features.cards/videos; expose it as a dedicated page group
+  const trainingVideosRows = buildFeatureCardRows({
+    state,
+    defaults,
+    pageTitle: "Training Videos",
+    sectionTitle: "Feature Cards & Videos",
+    openHref: "trainingVideos.html",
+    openLabel: "Training Videos",
+  });
+  if (trainingVideosRows.length > 0) {
+    const trainingPage = ensurePage(
+      "training-videos",
+      "Training Videos",
+      2,
+      "trainingVideos.html",
+    );
+    trainingPage.openLabel = "Training Videos";
+    trainingPage.sections.push({
+      id: "training-videos-content",
+      title: "Feature Cards & Videos",
+      rows: trainingVideosRows,
+    });
+  }
+
   const pages = Array.from(pagesById.values())
     .filter((page) => page.sections.length > 0)
     .sort((a, b) => a.order - b.order)
@@ -316,18 +340,6 @@ function buildSectionsForTopKey({
           openHref,
           openLabel,
           skipKeys: ["cards"],
-        }),
-      },
-      {
-        id: "features-cards",
-        title: "Feature Cards",
-        rows: buildFeatureCardRows({
-          state,
-          defaults,
-          pageTitle,
-          sectionTitle: "Feature Cards",
-          openHref,
-          openLabel,
         }),
       },
     ];
